@@ -406,6 +406,28 @@
   }
   @media (max-width: 700px) { .taskmap-grid { grid-template-columns: 1fr; } }
 
+  /* ── METRIC TOOLTIP ── */
+  .metric { position: relative; cursor: default; }
+  .metric:hover { border-color: var(--blue); box-shadow: 0 2px 10px rgba(50,102,173,.1); }
+  .metric-tooltip {
+    display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+    transform: translateX(-50%); z-index: 50;
+    background: #1a1a18; color: #fff; border-radius: 8px;
+    padding: .75rem 1rem; min-width: 200px; max-width: 260px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2); pointer-events: none;
+    font-size: 12px; line-height: 1.6;
+  }
+  .metric-tooltip::after {
+    content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: #1a1a18;
+  }
+  .metric:hover .metric-tooltip { display: block; }
+  .tooltip-row { display: flex; justify-content: space-between; gap: 12px; }
+  .tooltip-row + .tooltip-row { border-top: 1px solid rgba(255,255,255,.1); padding-top: 5px; margin-top: 5px; }
+  .tooltip-key { color: rgba(255,255,255,.6); }
+  .tooltip-val { font-weight: 700; color: #fff; white-space: nowrap; }
+  .tooltip-title { font-weight: 700; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.5); }
+
   /* ── EMPTY STATE ── */
   .empty { padding: 3rem; text-align: center; color: var(--text2); font-size: 14px; }
 
@@ -1097,36 +1119,111 @@ function renderMetrics(data) {
     }
   }
 
+  // top 3 people by hours
+  const topPeople = Object.entries(
+    data.reduce((m, d) => { m[d.Name] = (m[d.Name]||0)+d.Hours; return m; }, {})
+  ).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  // top 3 sponsors
+  const topSponsors = Object.entries(
+    data.reduce((m, d) => { m[d['Sponsor Name']] = (m[d['Sponsor Name']]||0)+d.Hours; return m; }, {})
+  ).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  // top 3 projects
+  const topProjects = Object.entries(
+    data.reduce((m, d) => { m[d['Project Name']] = (m[d['Project Name']]||0)+d.Hours; return m; }, {})
+  ).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  // all people list
+  const allPeople = Object.entries(
+    data.reduce((m, d) => { m[d.Name] = (m[d.Name]||0)+d.Hours; return m; }, {})
+  ).sort((a,b)=>b[1]-a[1]);
+
+  // all sponsors list
+  const allSponsors = Object.entries(
+    data.reduce((m, d) => { m[d['Sponsor Name']] = (m[d['Sponsor Name']]||0)+d.Hours; return m; }, {})
+  ).sort((a,b)=>b[1]-a[1]);
+
+  // all projects list
+  const allProjects = Object.entries(
+    data.reduce((m, d) => { m[d['Project Name']] = (m[d['Project Name']]||0)+d.Hours; return m; }, {})
+  ).sort((a,b)=>b[1]-a[1]);
+
+  // cat breakdown
+  const catBreakdown = Object.entries(
+    data.reduce((m, d) => {
+      const cat = getCat(d.Task);
+      const k = cat ? `${cat.code} ${cat.name}` : '미분류';
+      m[k] = (m[k]||0)+d.Hours; return m;
+    }, {})
+  ).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
+  function tooltipRows(entries, unit='h') {
+    return entries.map(([k,v]) => {
+      const label = k.length > 22 ? k.slice(0,22)+'…' : k;
+      return `<div class="tooltip-row"><span class="tooltip-key">${label}</span><span class="tooltip-val">${v.toFixed(1)}${unit}</span></div>`;
+    }).join('');
+  }
+
   document.getElementById('metrics').innerHTML = `
     <div class="metric">
       <div class="metric-label">총 투입 시간</div>
       <div class="metric-value">${total.toFixed(1)}h</div>
       ${deltaHtml}
+      <div class="metric-tooltip">
+        <div class="tooltip-title">대분류별 시간</div>
+        ${tooltipRows(catBreakdown)}
+      </div>
     </div>
     <div class="metric">
       <div class="metric-label">청구 가능 시간</div>
       <div class="metric-value">${billable.toFixed(1)}h</div>
       <div class="metric-sub">전체의 ${billPct}%</div>
+      <div class="metric-tooltip">
+        <div class="tooltip-title">청구 현황</div>
+        <div class="tooltip-row"><span class="tooltip-key">청구 가능</span><span class="tooltip-val" style="color:#6ee7b7">${billable.toFixed(1)}h (${billPct}%)</span></div>
+        <div class="tooltip-row"><span class="tooltip-key">청구 불가</span><span class="tooltip-val" style="color:#fca5a5">${(total-billable).toFixed(1)}h (${100-billPct}%)</span></div>
+        <div class="tooltip-row"><span class="tooltip-key">총합</span><span class="tooltip-val">${total.toFixed(1)}h</span></div>
+      </div>
     </div>
     <div class="metric">
       <div class="metric-label">1인 평균 시간</div>
       <div class="metric-value">${avgPerPerson}h</div>
       <div class="metric-sub">참여 ${people}명 기준</div>
+      <div class="metric-tooltip">
+        <div class="tooltip-title">투입 시간 상위 직원</div>
+        ${tooltipRows(topPeople)}
+      </div>
     </div>
     <div class="metric">
       <div class="metric-label">참여 인원</div>
       <div class="metric-value">${people}</div>
       <div class="metric-sub">명</div>
+      <div class="metric-tooltip">
+        <div class="tooltip-title">직원별 투입 시간</div>
+        ${tooltipRows(allPeople.slice(0,5))}
+        ${allPeople.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">외 ${allPeople.length-5}명...</div>` : ''}
+      </div>
     </div>
     <div class="metric">
       <div class="metric-label">프로젝트</div>
       <div class="metric-value">${projects}</div>
       <div class="metric-sub">건</div>
+      <div class="metric-tooltip">
+        <div class="tooltip-title">프로젝트별 투입 시간</div>
+        ${tooltipRows(allProjects.slice(0,5))}
+        ${allProjects.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">외 ${allProjects.length-5}건...</div>` : ''}
+      </div>
     </div>
     <div class="metric">
       <div class="metric-label">스폰서</div>
       <div class="metric-value">${sponsors}</div>
       <div class="metric-sub">개사</div>
+      <div class="metric-tooltip">
+        <div class="tooltip-title">스폰서별 투입 시간</div>
+        ${tooltipRows(allSponsors.slice(0,5))}
+        ${allSponsors.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">외 ${allSponsors.length-5}개사...</div>` : ''}
+      </div>
     </div>
   `;
 }
