@@ -5,11 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Timesheet Analytics Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
     --blue: #3266ad;
+    --blue-light: #EBF2FC;
     --green: #1D9E75;
     --amber: #BA7517;
     --coral: #D85A30;
@@ -52,103 +54,95 @@
     z-index: 100;
   }
   .nav-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-    text-decoration: none;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none;
   }
   .nav-logo-mark {
-    width: 28px; height: 28px;
-    background: var(--blue);
-    border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; background: var(--blue);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
   }
   .nav-logo-mark svg { width: 14px; height: 14px; fill: white; }
-  .nav-right {
-    display: flex; align-items: center; gap: 10px;
-  }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
   .nav-date-chip {
-    font-size: 12px;
-    color: var(--text2);
-    background: var(--surface2);
-    padding: 4px 12px;
-    border-radius: 99px;
-    border: 1px solid var(--border);
+    font-size: 12px; color: var(--text2); background: var(--surface2);
+    padding: 4px 12px; border-radius: 99px; border: 1px solid var(--border);
   }
 
   /* ── LAYOUT ── */
-  .page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
   /* ── UPLOAD ── */
   .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 3rem 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color .15s, background .15s;
-    background: var(--surface);
-    margin-bottom: 2rem;
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 3rem 2rem; text-align: center; cursor: pointer;
+    transition: border-color .15s, background .15s; background: var(--surface); margin-bottom: 2rem;
   }
-  .upload-zone:hover, .upload-zone.drag { border-color: var(--blue); background: #EBF2FC; }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--blue); background: var(--blue-light); }
   .upload-icon { font-size: 40px; margin-bottom: 1rem; }
   .upload-title { font-size: 16px; font-weight: 600; margin-bottom: 0.4rem; }
   .upload-sub { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; }
   .upload-btn-label {
-    display: inline-block;
-    padding: 9px 22px;
-    background: var(--blue);
-    color: white;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity .15s;
+    display: inline-block; padding: 9px 22px; background: var(--blue); color: white;
+    border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; cursor: pointer; transition: opacity .15s;
   }
   .upload-btn-label:hover { opacity: 0.88; }
   .file-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.25rem; justify-content: center; }
   .file-chip {
-    display: flex; align-items: center; gap: 6px;
-    padding: 5px 12px;
-    background: #e8f5ee;
-    color: #1a6640;
-    border-radius: 99px;
-    font-size: 12px;
-    font-weight: 500;
-    border: 1px solid #b8dfc8;
+    display: flex; align-items: center; gap: 6px; padding: 5px 12px;
+    background: #e8f5ee; color: #1a6640; border-radius: 99px; font-size: 12px;
+    font-weight: 500; border: 1px solid #b8dfc8;
   }
-  .chip-remove {
-    background: none; border: none; cursor: pointer;
-    color: #2a8a50; font-size: 15px; line-height: 1;
-    padding: 0 2px;
-  }
+  .chip-remove { background: none; border: none; cursor: pointer; color: #2a8a50; font-size: 15px; line-height: 1; padding: 0 2px; }
   .chip-remove:hover { color: #c0392b; }
 
   /* ── SECTION LABELS ── */
   .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin: 2rem 0 .875rem;
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .08em; margin: 2rem 0 .875rem;
+  }
+
+  /* ── FILTER PANEL ── */
+  .filter-panel {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+  }
+  .filter-panel-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem;
+  }
+  .filter-panel-title { font-size: 13px; font-weight: 600; }
+  .filter-clear-btn {
+    font-size: 12px; color: var(--blue); background: none; border: none; cursor: pointer; padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .filter-clear-btn:hover { background: var(--blue-light); }
+  .filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+  .filter-group label { font-size: 11px; color: var(--text2); font-weight: 600; display: block; margin-bottom: 4px; letter-spacing:.04em; text-transform:uppercase; }
+  .filter-input {
+    width: 100%; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; background: var(--surface); color: var(--text); outline: none;
+    transition: border-color .15s;
+  }
+  .filter-input:focus { border-color: var(--blue); }
+  .filter-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
+  .filter-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: .75rem; }
+  .filter-tag {
+    display: flex; align-items: center; gap: 4px; padding: 3px 10px;
+    background: var(--blue-light); color: var(--blue); border-radius: 99px;
+    font-size: 11px; font-weight: 600; border: 1px solid #c0d8f5;
+  }
+  .filter-tag-remove { background: none; border: none; cursor: pointer; color: var(--blue); font-size: 13px; padding: 0; line-height: 1; }
+  .filter-tag-remove:hover { color: var(--red); }
+  .filter-active-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; background: var(--blue); color: white;
+    border-radius: 99px; font-size: 10px; font-weight: 700; margin-left: 4px;
   }
 
   /* ── METRIC CARDS ── */
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-bottom: .5rem;
-  }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: .5rem; }
   .metric {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 1.1rem 1.25rem;
-    border: 1px solid var(--border2);
+    background: var(--surface); border-radius: var(--radius);
+    padding: 1.1rem 1.25rem; border: 1px solid var(--border2);
   }
   .metric-label { font-size: 12px; color: var(--text2); margin-bottom: .3rem; }
   .metric-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.1; }
@@ -157,48 +151,59 @@
   .delta-up { color: var(--green); }
   .delta-dn { color: var(--red); }
 
-  /* ── DATE FILTER TABS ── */
-  .date-filter { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  /* ── DATE FILTER ── */
+  .date-filter-wrap {
+    background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius);
+    padding: .875rem 1.25rem; margin-bottom: 1.25rem;
+  }
+  .date-filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .date-granularity {
+    display: flex; gap: 2px; background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 3px; border: 1px solid var(--border2); flex-shrink: 0;
+  }
+  .gran-btn {
+    padding: 5px 14px; border-radius: 5px; border: none; background: transparent;
+    color: var(--text2); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s;
+    white-space: nowrap;
+  }
+  .gran-btn:hover { color: var(--text); }
+  .gran-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .date-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+  .date-tabs-scroll {
+    display: flex; gap: 5px; overflow-x: auto; flex: 1;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .date-tabs-scroll::-webkit-scrollbar { display: none; }
   .date-tab {
-    padding: 6px 16px;
-    border-radius: 99px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text2);
-    font-size: 13px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all .15s;
+    padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer;
+    font-weight: 500; transition: all .15s; white-space: nowrap; flex-shrink: 0;
   }
   .date-tab:hover { border-color: var(--blue); color: var(--blue); }
   .date-tab.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .date-range-info {
+    font-size: 11px; color: var(--text3); margin-top: .5rem; padding-top: .5rem;
+    border-top: 1px solid var(--border2);
+  }
 
   /* ── VIEW TABS ── */
-  .view-tabs { display: flex; gap: 2px; background: var(--surface2); border-radius: var(--radius-sm); padding: 3px; margin-bottom: 1.25rem; width: fit-content; border: 1px solid var(--border2); }
+  .view-tabs {
+    display: flex; gap: 2px; background: var(--surface2); border-radius: var(--radius-sm);
+    padding: 3px; margin-bottom: 1.25rem; width: fit-content; border: 1px solid var(--border2);
+  }
   .view-tab {
-    padding: 6px 18px;
-    border-radius: 5px;
-    border: none;
-    background: transparent;
-    color: var(--text2);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all .15s;
+    padding: 6px 18px; border-radius: 5px; border: none; background: transparent;
+    color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s;
   }
   .view-tab:hover { color: var(--text); }
   .view-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 
   /* ── CARDS ── */
-  .card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    border: 1px solid var(--border2);
-    padding: 1.25rem 1.5rem;
-  }
+  .card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border2); padding: 1.25rem 1.5rem; }
   .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
   .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .charts-grid .full { grid-column: 1 / -1; }
+  .charts-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 
   /* ── LEGEND ── */
   .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
@@ -206,25 +211,14 @@
   .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 
   /* ── COMPARE VIEW ── */
-  .compare-header {
-    display: grid; grid-template-columns: 1fr auto 1fr;
-    gap: 8px; margin-bottom: 1rem;
-    font-size: 12px; font-weight: 600; color: var(--text2);
-  }
+  .compare-header { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; margin-bottom: 1rem; font-size: 12px; font-weight: 600; color: var(--text2); }
   .compare-row { margin-bottom: 12px; }
-  .compare-labels {
-    display: grid; grid-template-columns: 1fr auto 1fr;
-    gap: 8px; align-items: center; font-size: 13px; margin-bottom: 4px;
-  }
-  .compare-sponsor {
-    text-align: center; font-size: 11px; font-weight: 600; color: var(--text2);
-    min-width: 140px; line-height: 1.3;
-  }
+  .compare-labels { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 4px; }
+  .compare-sponsor { text-align: center; font-size: 11px; font-weight: 600; color: var(--text2); min-width: 140px; line-height: 1.3; }
   .compare-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .bar-track { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
   .bar-fill-left { height: 100%; border-radius: 3px; background: var(--blue); transition: width .5s ease; }
   .bar-fill-right { height: 100%; border-radius: 3px; background: var(--green); transition: width .5s ease; }
-  .right-align { text-align: right; }
   .compare-delta { font-size: 11px; font-weight: 600; }
 
   /* ── TABLE ── */
@@ -233,26 +227,184 @@
   th {
     text-align: left; padding: 0 .75rem .75rem;
     font-size: 11px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: .05em; color: var(--text2);
-    border-bottom: 1px solid var(--border);
+    letter-spacing: .05em; color: var(--text2); border-bottom: 1px solid var(--border);
+    cursor: pointer; user-select: none; white-space: nowrap;
   }
+  th:hover { color: var(--text); }
+  th .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+  th.sorted .sort-icon { opacity: 1; color: var(--blue); }
   td {
-    padding: .625rem .75rem;
-    border-bottom: 1px solid var(--border2);
-    color: var(--text);
-    vertical-align: middle;
+    padding: .625rem .75rem; border-bottom: 1px solid var(--border2);
+    color: var(--text); vertical-align: middle;
   }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: var(--surface2); }
-  .badge {
-    display: inline-block; padding: 2px 8px;
-    border-radius: 99px; font-size: 11px; font-weight: 600;
-  }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
   .badge-blue { background: #deeaf9; color: #1a4f8a; }
   .badge-gray { background: #eeecea; color: #555552; }
   .badge-green { background: #d9f0e6; color: #1a5e3a; }
   .td-num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
   .td-muted { color: var(--text2); }
+
+  /* ── TABLE TOOLBAR ── */
+  .table-toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem; gap: 10px; flex-wrap: wrap;
+  }
+  .table-search {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 6px 12px; flex: 1; max-width: 320px;
+  }
+  .table-search input { border: none; background: transparent; outline: none; font-size: 13px; color: var(--text); width: 100%; }
+  .table-search-icon { color: var(--text3); font-size: 14px; }
+  .table-actions { display: flex; align-items: center; gap: 8px; }
+  .btn-sm {
+    padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); transition: all .15s; display: flex; align-items: center; gap: 5px;
+  }
+  .btn-sm:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-light); }
+  .btn-primary { background: var(--blue); color: white; border-color: var(--blue); }
+  .btn-primary:hover { opacity: .88; color: white; }
+
+  /* ── PAGINATION ── */
+  .pagination {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 1rem; font-size: 12px; color: var(--text2);
+  }
+  .page-btns { display: flex; gap: 4px; }
+  .page-btn {
+    width: 30px; height: 30px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    background: var(--surface); color: var(--text2); font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+  }
+  .page-btn:hover { border-color: var(--blue); color: var(--blue); }
+  .page-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── PEOPLE CARDS GRID ── */
+  .people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 1.25rem; }
+  .person-card {
+    background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius);
+    padding: 1rem; cursor: pointer; transition: all .15s; position: relative;
+  }
+  .person-card:hover { border-color: var(--blue); box-shadow: 0 2px 8px rgba(50,102,173,.12); transform: translateY(-1px); }
+  .person-avatar {
+    width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: white; margin-bottom: .6rem;
+  }
+  .person-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .person-hours { font-size: 22px; font-weight: 700; color: var(--text); }
+  .person-sub { font-size: 11px; color: var(--text3); }
+  .person-bar { height: 3px; background: var(--surface2); border-radius: 99px; margin-top: .6rem; overflow: hidden; }
+  .person-bar-fill { height: 100%; border-radius: 99px; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200;
+    display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface); border-radius: 14px; width: 100%; max-width: 780px;
+    max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    transform: translateY(12px); transition: transform .2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--surface2); cursor: pointer; font-size: 16px; color: var(--text2);
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+  }
+  .modal-close:hover { background: var(--red); color: white; border-color: var(--red); }
+  .modal-body { padding: 1.5rem; }
+  .modal-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .modal-stat {
+    background: var(--surface2); border-radius: var(--radius-sm); padding: .75rem 1rem;
+    text-align: center;
+  }
+  .modal-stat-val { font-size: 22px; font-weight: 700; }
+  .modal-stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .modal-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+  .modal-section-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: .75rem; }
+
+  /* ── CATEGORY BADGE ── */
+  .cat-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700;
+    border: 1.5px solid transparent; white-space: nowrap;
+  }
+  .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── TASK FILTER CHIPS ── */
+  .cat-filter-row {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: .75rem; padding: .75rem 1rem;
+    background: var(--surface2); border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+  }
+  .cat-filter-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+  .cat-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 99px; font-size: 11px; font-weight: 700;
+    border: 1.5px solid; cursor: pointer; transition: all .15s; opacity: .45;
+  }
+  .cat-chip:hover { opacity: .8; }
+  .cat-chip.active { opacity: 1; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .cat-chip-all {
+    padding: 4px 13px; border-radius: 99px; font-size: 11px; font-weight: 700;
+    border: 1.5px solid var(--border); background: var(--surface); color: var(--text2);
+    cursor: pointer; transition: all .15s;
+  }
+  .cat-chip-all.active { background: var(--text); color: white; border-color: var(--text); }
+  .cat-chip-all:hover { border-color: var(--text2); }
+
+  /* ── TASK MAP ── */
+  .taskmap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .taskmap-card {
+    background: var(--surface); border-radius: var(--radius); border: 2px solid transparent;
+    overflow: hidden;
+  }
+  .taskmap-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: .875rem 1.1rem; border-bottom: 1px solid rgba(0,0,0,.06);
+  }
+  .taskmap-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px;
+  }
+  .taskmap-code { font-size: 12px; font-weight: 800; letter-spacing: .04em; }
+  .taskmap-name { font-size: 13px; font-weight: 700; color: var(--text); }
+  .taskmap-meta { font-size: 11px; color: var(--text3); margin-left: auto; white-space: nowrap; }
+  .taskmap-tasks { padding: .75rem 1.1rem; display: flex; flex-direction: column; gap: 4px; }
+  .taskmap-task-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px; border-radius: 6px; cursor: pointer; transition: background .1s;
+  }
+  .taskmap-task-row:hover { background: var(--surface2); }
+  .taskmap-task-name { font-size: 12px; color: var(--text); font-weight: 500; }
+  .taskmap-task-hours { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .taskmap-task-bar { height: 3px; border-radius: 99px; margin-top: 3px; }
+  .taskmap-empty { font-size: 12px; color: var(--text3); padding: 6px 8px; font-style: italic; }
+  .taskmap-unmatched {
+    background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--border);
+    padding: 1rem 1.25rem; margin-top: 14px;
+  }
+  .taskmap-unmatched-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: .6rem; }
+  .taskmap-unmatched-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .taskmap-unmatched-tag {
+    font-size: 11px; background: var(--surface2); color: var(--text2);
+    border: 1px solid var(--border2); border-radius: 4px; padding: 2px 8px;
+  }
+  @media (max-width: 700px) { .taskmap-grid { grid-template-columns: 1fr; } }
 
   /* ── EMPTY STATE ── */
   .empty { padding: 3rem; text-align: center; color: var(--text2); font-size: 14px; }
@@ -261,12 +413,20 @@
   .footer { text-align: center; padding: 1.5rem; font-size: 12px; color: var(--text3); }
 
   /* ── RESPONSIVE ── */
-  @media (max-width: 700px) {
-    .charts-grid { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .filter-grid { grid-template-columns: 1fr 1fr; }
+    .charts-grid, .charts-grid-3 { grid-template-columns: 1fr; }
     .charts-grid .full { grid-column: 1; }
+    .modal-charts { grid-template-columns: 1fr; }
+    .modal-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 700px) {
     .page { padding: 1rem 1rem 3rem; }
     .nav { padding: 0 1rem; }
     .metrics { grid-template-columns: repeat(2, 1fr); }
+    .filter-grid { grid-template-columns: 1fr; }
+    .people-grid { grid-template-columns: repeat(2, 1fr); }
+    .modal-stats { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -304,7 +464,55 @@
 
     <!-- METRICS -->
     <div class="section-label">요약</div>
-    <div class="date-filter" id="date-filter"></div>
+    <div class="date-filter-wrap">
+      <div class="date-filter-row">
+        <div class="date-granularity">
+          <button class="gran-btn active" onclick="setGranularity('all', this)">전체</button>
+          <button class="gran-btn" onclick="setGranularity('month', this)">월별</button>
+          <button class="gran-btn" onclick="setGranularity('week', this)">주별</button>
+          <button class="gran-btn" onclick="setGranularity('day', this)">일별</button>
+        </div>
+        <div class="date-divider"></div>
+        <div class="date-tabs-scroll" id="date-tabs-scroll"></div>
+      </div>
+      <div class="date-range-info" id="date-range-info"></div>
+    </div>
+
+    <!-- FILTER PANEL -->
+    <div class="filter-panel" id="filter-panel">
+      <div class="filter-panel-header">
+        <div class="filter-panel-title">🔍 필터 <span id="filter-active-badge" style="display:none" class="filter-active-count">0</span></div>
+        <button class="filter-clear-btn" onclick="clearAllFilters()">전체 초기화</button>
+      </div>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label>키워드 검색</label>
+          <input type="text" class="filter-input" id="f-keyword" placeholder="이름, 프로젝트, 태스크..." oninput="applyFilters()">
+        </div>
+        <div class="filter-group">
+          <label>스폰서</label>
+          <select class="filter-input filter-select" id="f-sponsor" onchange="applyFilters()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>직원</label>
+          <select class="filter-input filter-select" id="f-person" onchange="applyFilters()">
+            <option value="">전체</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>청구 여부</label>
+          <select class="filter-input filter-select" id="f-billable" onchange="applyFilters()">
+            <option value="">전체</option>
+            <option value="1">청구 가능</option>
+            <option value="0">청구 불가</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-tags" id="filter-tags"></div>
+    </div>
+
     <div class="metrics" id="metrics"></div>
 
     <!-- CHARTS -->
@@ -314,23 +522,34 @@
       <button class="view-tab" onclick="switchView('compare', this)">날짜 비교</button>
       <button class="view-tab" onclick="switchView('people', this)">직원 현황</button>
       <button class="view-tab" onclick="switchView('detail', this)">상세 내역</button>
+      <button class="view-tab" onclick="switchView('taskmap', this)">태스크 분류</button>
     </div>
 
     <!-- Overview -->
     <div id="view-overview">
-      <div class="charts-grid">
+      <div class="charts-grid" style="margin-bottom:14px">
         <div class="card">
           <div class="card-title">스폰서별 시간 분포</div>
           <div class="legend" id="sponsor-legend"></div>
-          <div style="position:relative;height:220px"><canvas id="sponsorChart" aria-label="스폰서별 투입 시간 분포" role="img"></canvas></div>
+          <div style="position:relative;height:220px"><canvas id="sponsorChart"></canvas></div>
         </div>
         <div class="card">
+          <div class="card-title">청구 가능 / 불가 비교</div>
+          <div style="position:relative;height:270px"><canvas id="billableChart"></canvas></div>
+        </div>
+      </div>
+      <div class="charts-grid">
+        <div class="card">
           <div class="card-title">태스크 유형별 상위 8개</div>
-          <div style="position:relative;height:270px"><canvas id="taskChart" aria-label="태스크별 투입 시간" role="img"></canvas></div>
+          <div style="position:relative;height:270px"><canvas id="taskChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">프로젝트별 상위 8개</div>
+          <div style="position:relative;height:270px"><canvas id="projectChart"></canvas></div>
         </div>
         <div class="card full">
           <div class="card-title">날짜별 총 투입 시간 추이</div>
-          <div style="position:relative;height:200px"><canvas id="trendChart" aria-label="날짜별 투입 시간 추이" role="img"></canvas></div>
+          <div style="position:relative;height:200px"><canvas id="trendChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -346,9 +565,20 @@
     <!-- People -->
     <div id="view-people" style="display:none">
       <div class="card">
-        <div class="card-title">직원별 투입 시간</div>
-        <div style="position:relative;" id="people-wrap">
-          <canvas id="peopleChart" aria-label="직원별 투입 시간" role="img"></canvas>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div class="card-title" style="margin-bottom:0">직원별 투입 시간 <span style="font-size:11px;color:var(--text2);font-weight:400">— 카드 클릭 시 상세 보기</span></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm" id="people-view-card" onclick="setPeopleView('card')" style="border-color:var(--blue);color:var(--blue)">카드</button>
+            <button class="btn-sm" id="people-view-chart" onclick="setPeopleView('chart')">차트</button>
+          </div>
+        </div>
+        <div id="people-card-view">
+          <div class="people-grid" id="people-grid"></div>
+        </div>
+        <div id="people-chart-view" style="display:none">
+          <div style="position:relative;" id="people-wrap">
+            <canvas id="peopleChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -356,9 +586,25 @@
     <!-- Detail -->
     <div id="view-detail" style="display:none">
       <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-          <div class="card-title" style="margin-bottom:0">전체 상세 내역</div>
-          <span id="detail-count" style="font-size:12px;color:var(--text2)"></span>
+        <div class="table-toolbar">
+          <div class="table-search">
+            <span class="table-search-icon">🔍</span>
+            <input type="text" id="det-search" placeholder="테이블 내 검색..." oninput="filterDetailTable()">
+          </div>
+          <div class="table-actions">
+            <select class="filter-input filter-select" id="det-person-filter" onchange="filterDetailTable()" style="max-width:160px;font-size:12px;padding:5px 28px 5px 10px">
+              <option value="">👤 전체 직원</option>
+            </select>
+            <span id="detail-count" style="font-size:12px;color:var(--text2)"></span>
+            <button class="btn-sm" onclick="exportExcel()">⬇ CSV 내보내기</button>
+            <button class="btn-sm btn-primary" onclick="printReport()">🖨 보고서 출력</button>
+          </div>
+        </div>
+        <div id="det-person-tag" style="display:none;margin-bottom:.75rem"></div>
+        <div class="cat-filter-row" id="det-cat-row">
+          <span class="cat-filter-label">대분류</span>
+          <button class="cat-chip-all active" id="cat-chip-all" onclick="setCatFilter(null, this)">전체</button>
+          <span id="det-cat-chips"></span>
         </div>
         <div class="table-wrap">
           <table>
@@ -366,23 +612,172 @@
             <tbody id="det-body"></tbody>
           </table>
         </div>
+        <div class="pagination" id="pagination"></div>
       </div>
+    </div>
+
+    <!-- Task Map -->
+    <div id="view-taskmap" style="display:none">
+      <div id="taskmap-content"></div>
     </div>
 
   </div><!-- /dashboard -->
 </div><!-- /page -->
 
+<!-- PERSON MODAL -->
+<div class="modal-overlay" id="person-modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modal-person-name"></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px" id="modal-person-sub"></div>
+      </div>
+      <button class="modal-close" onclick="closePeopleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-stats" id="modal-stats"></div>
+      <div class="modal-charts">
+        <div>
+          <div class="modal-section-title">스폰서별 분포</div>
+          <div style="position:relative;height:180px"><canvas id="modalSponsorChart"></canvas></div>
+        </div>
+        <div>
+          <div class="modal-section-title">태스크 유형</div>
+          <div style="position:relative;height:180px"><canvas id="modalTaskChart"></canvas></div>
+        </div>
+      </div>
+      <div>
+        <div class="modal-section-title">날짜별 투입 시간</div>
+        <div style="position:relative;height:140px"><canvas id="modalTrendChart"></canvas></div>
+      </div>
+      <div style="margin-top:1.5rem">
+        <div class="modal-section-title">상세 내역</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>날짜</th><th>스폰서</th><th>프로젝트</th><th>태스크</th><th style="text-align:right">시간</th></tr></thead>
+            <tbody id="modal-detail-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="footer">Timesheet Analytics · 파일은 브라우저에서만 처리되며 서버에 저장되지 않습니다.</div>
 
 <script>
 const COLORS = ['#3266ad','#1D9E75','#BA7517','#D85A30','#7F77DD','#639922','#D4537E','#E24B4A','#888780','#0F6E56','#533AB7','#993C1D','#1a6640','#6e3b0f'];
+
+// 대분류 카테고리 — Task 이름 키워드 기반 매핑
+const CATEGORIES = [
+  {
+    code: 'BIL-S', name: '매출 프로젝트',
+    color: '#16A34A', bg: '#f0fdf4', border: '#86efac',
+    keywords: ['project management','regulatory consulting','database lock','data management','application qc',
+               'data review','site management','safety','medical writing','biostatistics','clinical',
+               'monitoring','site visit','audit','crf','edc','coding','reconciliation','query',
+               'delivery','report','submission','narrative','csr','sdtm','adam','tlf','table','listing','figure']
+  },
+  {
+    code: 'BIL-C', name: '과제 프로젝트',
+    color: '#0D9488', bg: '#f0fdfa', border: '#5eead4',
+    keywords: ['research','study','protocol','analysis','investigator','irb','ethics','feasibility',
+               'literature','publication','poster','abstract','manuscript']
+  },
+  {
+    code: 'BD', name: '영업·사업개발',
+    color: '#2563EB', bg: '#eff6ff', border: '#93c5fd',
+    keywords: ['business development','proposal','rfp','bid','contract','budget','scope','sales','marketing',
+               'presentation','pitch','opportunity','lead']
+  },
+  {
+    code: 'RD', name: '연구개발',
+    color: '#9333EA', bg: '#faf5ff', border: '#d8b4fe',
+    keywords: ['development','system','tool','validation','qualification','software','programming',
+               'automation','r&d','innovation','platform']
+  },
+  {
+    code: 'OPS', name: '운영·유지보수',
+    color: '#D97706', bg: '#fffbeb', border: '#fcd34d',
+    keywords: ['operations','maintenance','infrastructure','server','support','helpdesk','it ','network',
+               'backup','deployment','release','update','patch']
+  },
+  {
+    code: 'ADM', name: '경영지원·관리',
+    color: '#6B7280', bg: '#f9fafb', border: '#d1d5db',
+    keywords: ['meetings','meeting','admin','administration','management review','formatting','template',
+               'document control','filing','archiving','hr','finance','legal','compliance','sop',
+               'training plan','onboarding','invoice','timesheet','general','miscellaneous','other']
+  },
+  {
+    code: 'LD', name: '교육·자기개발',
+    color: '#0891B2', bg: '#ecfeff', border: '#67e8f9',
+    keywords: ['training','learning','education','seminar','conference','workshop','course','certification',
+               'self-study','webinar','e-learning']
+  },
+  {
+    code: 'LV', name: '휴가·휴직',
+    color: '#DC2626', bg: '#fef2f2', border: '#fca5a5',
+    keywords: ['leave','vacation','holiday','sick','absence','off','pto','time off','parental','maternity',
+               'paternity','bereavement']
+  },
+];
+
+// Task 이름으로 대분류 반환 — 키워드 매핑 우선, 없으면 색상 해시
+function getCat(task) {
+  const t = String(task).toLowerCase().trim();
+  for (const c of CATEGORIES) {
+    if (c.keywords.some(k => t.includes(k))) return c;
+  }
+  return null;
+}
+
+// 대분류 매핑에 없는 Task는 고유 색상 자동 생성 (해시 기반)
+const _taskColorCache = {};
+function getTaskColor(task) {
+  if (_taskColorCache[task]) return _taskColorCache[task];
+  let hash = 0;
+  for (let i = 0; i < task.length; i++) hash = task.charCodeAt(i) + ((hash << 5) - hash);
+  const palette = [
+    {color:'#0369a1',bg:'#e0f2fe',border:'#7dd3fc'},
+    {color:'#7c3aed',bg:'#ede9fe',border:'#c4b5fd'},
+    {color:'#b45309',bg:'#fef3c7',border:'#fde68a'},
+    {color:'#065f46',bg:'#d1fae5',border:'#6ee7b7'},
+    {color:'#9d174d',bg:'#fce7f3',border:'#f9a8d4'},
+    {color:'#1e40af',bg:'#dbeafe',border:'#93c5fd'},
+    {color:'#92400e',bg:'#ffedd5',border:'#fdba74'},
+    {color:'#166534',bg:'#dcfce7',border:'#86efac'},
+  ];
+  const c = palette[Math.abs(hash) % palette.length];
+  _taskColorCache[task] = c;
+  return c;
+}
+
+// 항상 색상 반환 (매핑 없어도 자동 할당)
+function getTaskStyle(task) {
+  return getCat(task) || getTaskColor(task);
+}
 const COLS = ['Sponsor Name','Project Name','Project Internal Number','Job Code','Name','Date','Task','User Comment','Hours'];
 
 let allData = [];
+let filteredData = [];
 let dateKeys = [];
-let activeDate = 'all';
+let activeDate = 'all';      // 선택된 탭 키
+let granularity = 'all';     // 'all' | 'month' | 'week' | 'day'
 let activeView = 'overview';
 let charts = {};
+let modalCharts = {};
+let peopleViewMode = 'card';
+
+// Detail table state
+let detailSortCol = 'dateStr';
+let detailSortAsc = true;
+let detailPage = 1;
+const DETAIL_PAGE_SIZE = 30;
+let detailTableData = [];
+let detailSearchStr = '';
+let detailPersonFilter = '';
+let detailCatFilter = null; // null = all, string = category code
 
 // ── FILE HANDLING ──────────────────────────────────────────
 const dropZone = document.getElementById('drop-zone');
@@ -424,12 +819,13 @@ function loadFile(file) {
 
       if (parsed.length === 0) { alert('⚠️ 데이터를 찾을 수 없습니다.'); return; }
 
-      // Remove previous data from same file, add new
       allData = allData.filter(d => d.source !== file.name);
       allData.push(...parsed);
 
       buildDateKeys();
+      updateFilterOptions();
       updateFileChips();
+      applyFilters();
       showDashboard();
     } catch(err) {
       alert('⚠️ 파일 오류: ' + err.message);
@@ -442,11 +838,13 @@ function removeFile(name) {
   allData = allData.filter(d => d.source !== name);
   buildDateKeys();
   if (!dateKeys.includes(activeDate)) activeDate = 'all';
+  updateFilterOptions();
   updateFileChips();
   if (allData.length === 0) {
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('nav-date').textContent = '파일을 업로드하세요';
   } else {
+    applyFilters();
     render();
   }
 }
@@ -458,19 +856,95 @@ function buildDateKeys() {
 function updateFileChips() {
   const fnames = [...new Set(allData.map(d => d.source))];
   document.getElementById('file-chips').innerHTML = fnames.map(f =>
-    `<div class="file-chip">📄 ${f} <button class="chip-remove" onclick="removeFile('${f}')">×</button></div>`
+    `<div class="file-chip">📄 ${f} <button class="chip-remove" onclick="removeFile('${f.replace(/'/g,"\\'")}')">×</button></div>`
   ).join('');
+}
+
+// ── FILTER OPTIONS ─────────────────────────────────────────
+function getDateBase() {
+  if (activeDate === 'all') return allData;
+  if (granularity === 'day') return allData.filter(d => d.dateStr === activeDate);
+  return allData.filter(d => getGroupKey(d.dateStr) === activeDate);
+}
+
+function updateFilterOptions() {
+  const base = getDateBase();
+  const sponsors = [...new Set(base.map(d => d['Sponsor Name']))].sort();
+  const people = [...new Set(base.map(d => d.Name))].sort();
+
+  const fSponsor = document.getElementById('f-sponsor');
+  const fPerson = document.getElementById('f-person');
+  const sv = fSponsor.value, pv = fPerson.value;
+
+  fSponsor.innerHTML = '<option value="">전체</option>' + sponsors.map(s => `<option value="${s}">${s}</option>`).join('');
+  fPerson.innerHTML = '<option value="">전체</option>' + people.map(p => `<option value="${p}">${p}</option>`).join('');
+
+  if (sponsors.includes(sv)) fSponsor.value = sv;
+  if (people.includes(pv)) fPerson.value = pv;
+}
+
+function applyFilters() {
+  const keyword = document.getElementById('f-keyword').value.trim().toLowerCase();
+  const sponsor = document.getElementById('f-sponsor').value;
+  const person = document.getElementById('f-person').value;
+  const billable = document.getElementById('f-billable').value;
+
+  const base = getDateBase();
+
+  filteredData = base.filter(d => {
+    if (sponsor && d['Sponsor Name'] !== sponsor) return false;
+    if (person && d.Name !== person) return false;
+    if (billable === '1' && !d.isBillable) return false;
+    if (billable === '0' && d.isBillable) return false;
+    if (keyword) {
+      const str = [d.Name, d['Sponsor Name'], d['Project Name'], d.Task].join(' ').toLowerCase();
+      if (!str.includes(keyword)) return false;
+    }
+    return true;
+  });
+
+  // Count active filters
+  let count = 0;
+  if (keyword) count++;
+  if (sponsor) count++;
+  if (person) count++;
+  if (billable) count++;
+
+  const badge = document.getElementById('filter-active-badge');
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  badge.textContent = count;
+
+  // Tags
+  const tags = [];
+  if (keyword) tags.push({ label: `키워드: ${keyword}`, clear: () => { document.getElementById('f-keyword').value = ''; applyFilters(); }});
+  if (sponsor) tags.push({ label: `스폰서: ${sponsor}`, clear: () => { document.getElementById('f-sponsor').value = ''; applyFilters(); }});
+  if (person) tags.push({ label: `직원: ${person}`, clear: () => { document.getElementById('f-person').value = ''; applyFilters(); }});
+  if (billable) tags.push({ label: billable === '1' ? '청구 가능' : '청구 불가', clear: () => { document.getElementById('f-billable').value = ''; applyFilters(); }});
+
+  document.getElementById('filter-tags').innerHTML = tags.map((t, i) =>
+    `<div class="filter-tag">${t.label}<button class="filter-tag-remove" onclick="clearFilterTag(${i})">×</button></div>`
+  ).join('');
+  window._filterTagClears = tags.map(t => t.clear);
+
+  destroyCharts();
+  renderMetrics(filteredData);
+  renderActiveView();
+}
+
+function clearFilterTag(i) { window._filterTagClears[i](); }
+
+function clearAllFilters() {
+  document.getElementById('f-keyword').value = '';
+  document.getElementById('f-sponsor').value = '';
+  document.getElementById('f-person').value = '';
+  document.getElementById('f-billable').value = '';
+  applyFilters();
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────
 function showDashboard() {
   document.getElementById('dashboard').style.display = 'block';
   render();
-}
-
-function getFiltered() {
-  if (activeDate === 'all') return allData;
-  return allData.filter(d => d.dateStr === activeDate);
 }
 
 function destroyCharts() {
@@ -480,21 +954,113 @@ function destroyCharts() {
 
 function render() {
   renderDateFilter();
-  renderMetrics(getFiltered());
-  destroyCharts();
-  renderActiveView();
+  updateFilterOptions();
+  applyFilters();
+}
+
+// ── DATE FILTER (주별/월별) ────────────────────────────────
+function getISOWeek(dateStr) {
+  const d = new Date(dateStr);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const wn = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return `${d.getFullYear()}-W${String(wn).padStart(2, '0')}`;
+}
+
+function getWeekRange(weekKey) {
+  const [year, wStr] = weekKey.split('-W');
+  const w = parseInt(wStr);
+  const jan1 = new Date(parseInt(year), 0, 1);
+  const dayOfWeek = jan1.getDay() || 7;
+  const startOffset = (w - 1) * 7 - dayOfWeek + 1;
+  const start = new Date(jan1);
+  start.setDate(jan1.getDate() + startOffset);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+  return `${fmt(start)} ~ ${fmt(end)}`;
+}
+
+function getGroupKey(dateStr) {
+  if (granularity === 'month') return dateStr.slice(0, 7);
+  if (granularity === 'week')  return getISOWeek(dateStr);
+  return dateStr;
+}
+
+function getGroupLabel(key) {
+  if (granularity === 'month') {
+    const [y, m] = key.split('-');
+    return `${y}년 ${parseInt(m)}월`;
+  }
+  if (granularity === 'week') {
+    const [, wStr] = key.split('-W');
+    return `${parseInt(wStr)}주차`;
+  }
+  return key;
+}
+
+function getDatesForGroup(key) {
+  if (key === 'all') return dateKeys;
+  return dateKeys.filter(d => getGroupKey(d) === key);
 }
 
 function renderDateFilter() {
-  const tabs = [{ k: 'all', l: `전체 (${dateKeys.length}일)` }, ...dateKeys.map(k => ({ k, l: k }))];
-  document.getElementById('date-filter').innerHTML = tabs.map(t =>
-    `<button class="date-tab${t.k === activeDate ? ' active' : ''}" onclick="setDate('${t.k}')">${t.l}</button>`
-  ).join('');
   const latest = dateKeys[dateKeys.length - 1] || '';
   document.getElementById('nav-date').textContent = latest ? `최근 리포트: ${latest}` : '파일 로드됨';
+
+  if (granularity === 'all') {
+    document.getElementById('date-tabs-scroll').innerHTML =
+      `<button class="date-tab active" onclick="setDate('all')">전체 데이터 (${dateKeys.length}일)</button>`;
+    document.getElementById('date-range-info').textContent =
+      dateKeys.length ? `${dateKeys[0]} ~ ${dateKeys[dateKeys.length-1]}` : '';
+    return;
+  }
+
+  // Build group list
+  const groups = [...new Set(dateKeys.map(k => getGroupKey(k)))].sort();
+
+  document.getElementById('date-tabs-scroll').innerHTML =
+    [`<button class="date-tab${activeDate === 'all' ? ' active' : ''}" onclick="setDate('all')">전체</button>`,
+     ...groups.map(g =>
+       `<button class="date-tab${activeDate === g ? ' active' : ''}" onclick="setDate('${g}')">${getGroupLabel(g)}</button>`)
+    ].join('');
+
+  updateRangeInfo();
 }
 
-function setDate(d) { activeDate = d; render(); }
+function updateRangeInfo() {
+  const el = document.getElementById('date-range-info');
+  if (activeDate === 'all') {
+    el.textContent = dateKeys.length ? `전체: ${dateKeys[0]} ~ ${dateKeys[dateKeys.length-1]} (${dateKeys.length}일)` : '';
+    return;
+  }
+  const dates = getDatesForGroup(activeDate);
+  if (granularity === 'week') {
+    el.textContent = `${getGroupLabel(activeDate)}: ${getWeekRange(activeDate)} (${dates.length}일)`;
+  } else if (granularity === 'month') {
+    el.textContent = `${getGroupLabel(activeDate)}: ${dates[0]} ~ ${dates[dates.length-1]} (${dates.length}일)`;
+  } else {
+    el.textContent = activeDate;
+  }
+}
+
+function setGranularity(g, btn) {
+  granularity = g;
+  activeDate = 'all';
+  document.querySelectorAll('.gran-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateFilterOptions();
+  renderDateFilter();
+  applyFilters();
+}
+
+function setDate(d) {
+  activeDate = d;
+  updateFilterOptions();
+  renderDateFilter();
+  applyFilters();
+}
 
 function renderMetrics(data) {
   const total = data.reduce((s, d) => s + d.Hours, 0);
@@ -503,16 +1069,32 @@ function renderMetrics(data) {
   const projects = new Set(data.map(d => d['Project Name'])).size;
   const sponsors = new Set(data.map(d => d['Sponsor Name'])).size;
   const billPct = total > 0 ? Math.round(billable / total * 100) : 0;
+  const avgPerPerson = people > 0 ? (total / people).toFixed(1) : 0;
 
   let deltaHtml = '';
   if (activeDate === 'all' && dateKeys.length >= 2) {
-    const byDate = {};
-    dateKeys.forEach(k => { byDate[k] = allData.filter(d => d.dateStr === k).reduce((s, d) => s + d.Hours, 0); });
-    const first = byDate[dateKeys[0]], last = byDate[dateKeys[dateKeys.length - 1]];
-    const pct = ((last - first) / first * 100).toFixed(0);
-    const cls = pct >= 0 ? 'delta-up' : 'delta-dn';
-    const arrow = pct >= 0 ? '▲' : '▼';
-    deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (첫날 대비 최신)</div>`;
+    const groups = [...new Set(dateKeys.map(k => getGroupKey(k)))].sort();
+    if (granularity !== 'all' && groups.length >= 2) {
+      const g1 = groups[0], g2 = groups[groups.length-1];
+      const h1 = allData.filter(d => getGroupKey(d.dateStr) === g1).reduce((s, d) => s + d.Hours, 0);
+      const h2 = allData.filter(d => getGroupKey(d.dateStr) === g2).reduce((s, d) => s + d.Hours, 0);
+      if (h1 > 0) {
+        const pct = ((h2 - h1) / h1 * 100).toFixed(0);
+        const cls = pct >= 0 ? 'delta-up' : 'delta-dn';
+        const arrow = pct >= 0 ? '▲' : '▼';
+        deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (${getGroupLabel(g1)} 대비 ${getGroupLabel(g2)})</div>`;
+      }
+    } else if (granularity === 'all') {
+      const byDate = {};
+      dateKeys.forEach(k => { byDate[k] = allData.filter(d => d.dateStr === k).reduce((s, d) => s + d.Hours, 0); });
+      const first = byDate[dateKeys[0]], last = byDate[dateKeys[dateKeys.length - 1]];
+      if (first > 0) {
+        const pct = ((last - first) / first * 100).toFixed(0);
+        const cls = pct >= 0 ? 'delta-up' : 'delta-dn';
+        const arrow = pct >= 0 ? '▲' : '▼';
+        deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (첫날 대비 최신)</div>`;
+      }
+    }
   }
 
   document.getElementById('metrics').innerHTML = `
@@ -525,6 +1107,11 @@ function renderMetrics(data) {
       <div class="metric-label">청구 가능 시간</div>
       <div class="metric-value">${billable.toFixed(1)}h</div>
       <div class="metric-sub">전체의 ${billPct}%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">1인 평균 시간</div>
+      <div class="metric-value">${avgPerPerson}h</div>
+      <div class="metric-sub">참여 ${people}명 기준</div>
     </div>
     <div class="metric">
       <div class="metric-label">참여 인원</div>
@@ -549,7 +1136,7 @@ function switchView(view, btn) {
   activeView = view;
   document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  ['overview','compare','people','detail'].forEach(v => {
+  ['overview','compare','people','detail','taskmap'].forEach(v => {
     document.getElementById('view-' + v).style.display = v === view ? 'block' : 'none';
   });
   destroyCharts();
@@ -557,10 +1144,11 @@ function switchView(view, btn) {
 }
 
 function renderActiveView() {
-  if (activeView === 'overview') renderOverview(getFiltered());
+  if (activeView === 'overview') renderOverview(filteredData);
   if (activeView === 'compare') renderCompare();
-  if (activeView === 'people') renderPeople(getFiltered());
-  if (activeView === 'detail') renderDetail(getFiltered());
+  if (activeView === 'people') renderPeople(filteredData);
+  if (activeView === 'detail') renderDetail(filteredData);
+  if (activeView === 'taskmap') renderTaskMap(filteredData);
 }
 
 // ── OVERVIEW ───────────────────────────────────────────────
@@ -578,6 +1166,34 @@ function renderOverview(data) {
     type: 'doughnut',
     data: { labels: ss.map(([k]) => k), datasets: [{ data: ss.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h` } } } }
+  });
+
+  // Billable vs Non-billable by sponsor
+  const billableMap = {}, nonBillableMap = {};
+  data.forEach(d => {
+    const s = d['Sponsor Name'];
+    if (d.isBillable) billableMap[s] = (billableMap[s] || 0) + d.Hours;
+    else nonBillableMap[s] = (nonBillableMap[s] || 0) + d.Hours;
+  });
+  const bSponsors = [...new Set(data.map(d => d['Sponsor Name']))].sort((a,b) => ((billableMap[b]||0)+(nonBillableMap[b]||0)) - ((billableMap[a]||0)+(nonBillableMap[a]||0))).slice(0, 8);
+
+  charts.billable = new Chart(document.getElementById('billableChart'), {
+    type: 'bar',
+    data: {
+      labels: bSponsors.map(s => s.length > 16 ? s.slice(0,16)+'…' : s),
+      datasets: [
+        { label: '청구 가능', data: bSponsors.map(s => +(billableMap[s]||0).toFixed(1)), backgroundColor: COLORS[1]+'cc', borderRadius: 4, borderWidth: 0 },
+        { label: '청구 불가', data: bSponsors.map(s => +(nonBillableMap[s]||0).toFixed(1)), backgroundColor: COLORS[3]+'cc', borderRadius: 4, borderWidth: 0 }
+      ]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, padding: 10, usePointStyle: true, pointStyle: 'rect' } } },
+      scales: {
+        x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v+'h' } },
+        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
   });
 
   // Task bar
@@ -598,39 +1214,61 @@ function renderOverview(data) {
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+      scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v+'h' } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
     }
   });
 
-  // Trend line
-  const byDate = {};
-  dateKeys.forEach(k => { byDate[k] = allData.filter(d => d.dateStr === k).reduce((s, d) => s + d.Hours, 0); });
-  const trendLabels = dateKeys;
-  const trendData = dateKeys.map(k => +byDate[k].toFixed(1));
+  // Project bar
+  const pm = {};
+  data.forEach(d => {
+    let p = String(d['Project Name']).trim();
+    if (p.length > 30) p = p.slice(0, 30) + '…';
+    pm[p] = (pm[p] || 0) + d.Hours;
+  });
+  const ps = Object.entries(pm).sort((a, b) => b[1] - a[1]).slice(0, 8);
 
-  if (trendLabels.length >= 1) {
+  charts.project = new Chart(document.getElementById('projectChart'), {
+    type: 'bar',
+    data: {
+      labels: ps.map(([k]) => k),
+      datasets: [{ data: ps.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS[4] + 'dd', borderRadius: 4, borderWidth: 0 }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v+'h' } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+    }
+  });
+
+  // Trend line — group by current granularity
+  const trendGroups = [...new Set(dateKeys.map(k => getGroupKey(k)))].sort();
+  const trendByGroup = {};
+  trendGroups.forEach(g => {
+    trendByGroup[g] = allData.filter(d => getGroupKey(d.dateStr) === g).reduce((s, d) => s + d.Hours, 0);
+  });
+  const trendLabels = trendGroups.map(g => getGroupLabel(g));
+
+  if (trendGroups.length >= 1) {
     charts.trend = new Chart(document.getElementById('trendChart'), {
       type: 'line',
       data: {
         labels: trendLabels,
         datasets: [{
           label: '총 투입 시간',
-          data: trendData,
+          data: trendGroups.map(g => +trendByGroup[g].toFixed(1)),
           borderColor: COLORS[0],
           backgroundColor: COLORS[0] + '18',
-          tension: 0.3,
-          fill: true,
+          tension: 0.3, fill: true,
           pointBackgroundColor: COLORS[0],
-          pointRadius: 5,
-          pointHoverRadius: 7,
-          borderWidth: 2
+          pointRadius: trendGroups.length > 20 ? 3 : 5,
+          pointHoverRadius: 7, borderWidth: 2
         }]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { display: false } },
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 12, font: { size: 11 } } },
           y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + 'h' } }
         }
       }
@@ -692,51 +1330,977 @@ function renderCompare() {
 function renderPeople(data) {
   const pm = {};
   data.forEach(d => { pm[d.Name] = (pm[d.Name] || 0) + d.Hours; });
-  const ps = Object.entries(pm).sort((a, b) => b[1] - a[1]).slice(0, 25);
-  const h = Math.max(340, ps.length * 36 + 70);
-  document.getElementById('people-wrap').style.height = h + 'px';
+  const ps = Object.entries(pm).sort((a, b) => b[1] - a[1]);
+  const maxH = ps.length > 0 ? ps[0][1] : 1;
 
-  charts.people = new Chart(document.getElementById('peopleChart'), {
-    type: 'bar',
-    data: {
-      labels: ps.map(([k]) => k),
-      datasets: [{ data: ps.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS.map(c => c + 'cc'), borderRadius: 4, borderWidth: 0 }]
-    },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(1)}h` } } },
-      scales: {
-        x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + 'h' } },
-        y: { grid: { display: false }, ticks: { font: { size: 12 } } }
+  if (peopleViewMode === 'card') {
+    document.getElementById('people-grid').innerHTML = ps.map(([name, hours], i) => {
+      const color = COLORS[i % COLORS.length];
+      const initials = name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+      const pct = Math.round(hours / maxH * 100);
+      const billableH = data.filter(d => d.Name === name && d.isBillable).reduce((s, d) => s + d.Hours, 0);
+      const billPct = hours > 0 ? Math.round(billableH / hours * 100) : 0;
+      return `<div class="person-card" onclick="openPersonModal('${name.replace(/'/g, "\\'")}')">
+        <div class="person-avatar" style="background:${color}">${initials}</div>
+        <div class="person-name">${name}</div>
+        <div class="person-hours">${hours.toFixed(1)}h</div>
+        <div class="person-sub">청구 가능 ${billPct}%</div>
+        <div class="person-bar"><div class="person-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }).join('');
+  } else {
+    const h = Math.max(340, ps.length * 36 + 70);
+    document.getElementById('people-wrap').style.height = h + 'px';
+    charts.people = new Chart(document.getElementById('peopleChart'), {
+      type: 'bar',
+      data: {
+        labels: ps.map(([k]) => k),
+        datasets: [{ data: ps.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS.map(c => c + 'cc'), borderRadius: 4, borderWidth: 0 }]
+      },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(1)}h` } } },
+        scales: {
+          x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + 'h' } },
+          y: { grid: { display: false }, ticks: { font: { size: 12 } } }
+        }
       }
-    }
+    });
+  }
+}
+
+function setPeopleView(mode) {
+  peopleViewMode = mode;
+  document.getElementById('people-card-view').style.display = mode === 'card' ? 'block' : 'none';
+  document.getElementById('people-chart-view').style.display = mode === 'chart' ? 'block' : 'none';
+  document.getElementById('people-view-card').style.borderColor = mode === 'card' ? 'var(--blue)' : '';
+  document.getElementById('people-view-card').style.color = mode === 'card' ? 'var(--blue)' : '';
+  document.getElementById('people-view-chart').style.borderColor = mode === 'chart' ? 'var(--blue)' : '';
+  document.getElementById('people-view-chart').style.color = mode === 'chart' ? 'var(--blue)' : '';
+  if (charts.people) { try { charts.people.destroy(); } catch(e){} delete charts.people; }
+  renderPeople(filteredData);
+}
+
+// ── PERSON MODAL ───────────────────────────────────────────
+function openPersonModal(name) {
+  const data = filteredData.filter(d => d.Name === name);
+  if (data.length === 0) return;
+
+  const totalH = data.reduce((s, d) => s + d.Hours, 0);
+  const billableH = data.filter(d => d.isBillable).reduce((s, d) => s + d.Hours, 0);
+  const sponsors = new Set(data.map(d => d['Sponsor Name'])).size;
+  const projects = new Set(data.map(d => d['Project Name'])).size;
+  const billPct = totalH > 0 ? Math.round(billableH / totalH * 100) : 0;
+
+  document.getElementById('modal-person-name').textContent = name;
+  document.getElementById('modal-person-sub').textContent = `총 ${data.length}건의 기록`;
+
+  document.getElementById('modal-stats').innerHTML = `
+    <div class="modal-stat"><div class="modal-stat-val">${totalH.toFixed(1)}h</div><div class="modal-stat-lbl">총 투입 시간</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">${billPct}%</div><div class="modal-stat-lbl">청구 가능 비율</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">${sponsors}</div><div class="modal-stat-lbl">스폰서 수</div></div>
+  `;
+
+  // Destroy previous modal charts
+  Object.values(modalCharts).forEach(c => { try { c.destroy(); } catch(e){} });
+  modalCharts = {};
+
+  // Sponsor donut
+  const sm = {};
+  data.forEach(d => { sm[d['Sponsor Name']] = (sm[d['Sponsor Name']] || 0) + d.Hours; });
+  const ss = Object.entries(sm).sort((a, b) => b[1] - a[1]);
+  modalCharts.sponsor = new Chart(document.getElementById('modalSponsorChart'), {
+    type: 'doughnut',
+    data: { labels: ss.map(([k]) => k), datasets: [{ data: ss.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10 }, padding: 8, boxWidth: 10 } }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h` } } } }
   });
+
+  // Task donut
+  const tm = {};
+  data.forEach(d => {
+    let t = String(d.Task).replace(/\s*\(.*?\)/g, '').trim();
+    if (t.length > 20) t = t.slice(0, 20) + '…';
+    tm[t] = (tm[t] || 0) + d.Hours;
+  });
+  const ts = Object.entries(tm).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  modalCharts.task = new Chart(document.getElementById('modalTaskChart'), {
+    type: 'doughnut',
+    data: { labels: ts.map(([k]) => k), datasets: [{ data: ts.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS.slice(2), borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 10 }, padding: 8, boxWidth: 10 } }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h` } } } }
+  });
+
+  // Trend
+  const byDate = {};
+  dateKeys.forEach(k => { byDate[k] = data.filter(d => d.dateStr === k).reduce((s, d) => s + d.Hours, 0); });
+  const tDates = dateKeys.filter(k => byDate[k] > 0);
+  if (tDates.length > 0) {
+    modalCharts.trend = new Chart(document.getElementById('modalTrendChart'), {
+      type: 'bar',
+      data: {
+        labels: tDates,
+        datasets: [{ data: tDates.map(k => +byDate[k].toFixed(1)), backgroundColor: COLORS[0] + 'bb', borderRadius: 4, borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + 'h' } }
+        }
+      }
+    });
+  }
+
+  // Detail rows
+  const sorted = [...data].sort((a, b) => b.dateStr.localeCompare(a.dateStr));
+  document.getElementById('modal-detail-body').innerHTML = sorted.slice(0, 50).map(d => {
+    const task = String(d.Task).replace(/\s*\(.*?\)/g, '').trim();
+    return `<tr>
+      <td class="td-muted">${d.dateStr}</td>
+      <td>${(d['Sponsor Name']||'').length > 18 ? (d['Sponsor Name']).slice(0,18)+'…' : d['Sponsor Name']}</td>
+      <td>${(d['Project Name']||'').length > 18 ? (d['Project Name']).slice(0,18)+'…' : d['Project Name']}</td>
+      <td><span class="badge ${d.isBillable ? 'badge-blue' : 'badge-gray'}">${task.length > 22 ? task.slice(0,22)+'…' : task}</span></td>
+      <td class="td-num">${d.Hours.toFixed(1)}h</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('person-modal').classList.add('open');
+}
+
+function closePeopleModal() {
+  document.getElementById('person-modal').classList.remove('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('person-modal')) closePeopleModal();
 }
 
 // ── DETAIL TABLE ───────────────────────────────────────────
+const DET_COLS = [
+  { key: 'dateStr', label: '날짜' },
+  { key: 'Name', label: '직원' },
+  { key: 'Sponsor Name', label: '스폰서' },
+  { key: 'Project Name', label: '프로젝트' },
+  { key: 'Task', label: '태스크' },
+  { key: 'Hours', label: '시간' }
+];
+
 function renderDetail(data) {
-  const cols = ['날짜', '직원', '스폰서', '프로젝트', '태스크', '시간'];
-  const keys = ['dateStr', 'Name', 'Sponsor Name', 'Project Name', 'Task', 'Hours'];
+  detailTableData = data;
+  detailPage = 1;
+  detailSearchStr = document.getElementById('det-search').value.trim().toLowerCase();
 
-  document.getElementById('det-head').innerHTML = '<tr>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
-  document.getElementById('detail-count').textContent = `총 ${data.length}건`;
+  // Populate person dropdown
+  const people = [...new Set(data.map(d => d.Name))].sort();
+  const sel = document.getElementById('det-person-filter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">👤 전체 직원</option>' +
+    people.map(p => `<option value="${p}"${p === prev ? ' selected' : ''}>${p}</option>`).join('');
+  detailPersonFilter = sel.value;
 
-  const rows = data.slice(0, 200);
-  document.getElementById('det-body').innerHTML = rows.map(d => '<tr>' + keys.map((k, i) => {
-    if (k === 'Hours') return `<td class="td-num">${d[k].toFixed(1)}h</td>`;
-    if (k === 'Task') {
-      const t = String(d[k]).replace(/\s*\(.*?\)/g, '').trim();
-      const short = t.length > 28 ? t.slice(0, 28) + '…' : t;
-      return `<td><span class="badge ${d.isBillable ? 'badge-blue' : 'badge-gray'}">${short}</span></td>`;
+  // Build category chips — only show cats that appear in current data
+  const catsInData = CATEGORIES.filter(c => data.some(d => { const cat = getCat(d.Task); return cat && cat.code === c.code; }));
+  document.getElementById('det-cat-chips').innerHTML = catsInData.map(c =>
+    `<button class="cat-chip${detailCatFilter === c.code ? ' active' : ''}"
+      style="color:${c.color};border-color:${c.border};background:${detailCatFilter === c.code ? c.bg : 'transparent'}"
+      onclick="setCatFilter('${c.code}', this)">
+      <span class="cat-dot" style="background:${c.color}"></span>${c.name}
+    </button>`
+  ).join('');
+  document.getElementById('cat-chip-all').className = 'cat-chip-all' + (detailCatFilter === null ? ' active' : '');
+
+  rebuildDetailHeader();
+  renderDetailPage();
+}
+
+function rebuildDetailHeader() {
+  document.getElementById('det-head').innerHTML = '<tr>' + DET_COLS.map(c => {
+    const isSorted = detailSortCol === c.key;
+    const icon = isSorted ? (detailSortAsc ? '↑' : '↓') : '↕';
+    const filterBadge = (c.key === 'Name' && detailPersonFilter)
+      ? ` <span style="color:var(--blue);font-size:10px">●</span>` : '';
+    const catBadge = (c.key === 'Task' && detailCatFilter)
+      ? ` <span style="color:var(--blue);font-size:10px">●</span>` : '';
+    return `<th class="${isSorted ? 'sorted' : ''}" onclick="sortDetail('${c.key}')">${c.label}${filterBadge}${catBadge} <span class="sort-icon">${icon}</span></th>`;
+  }).join('') + '</tr>';
+}
+
+function setCatFilter(code, btn) {
+  detailCatFilter = code;
+  // Update chip styles
+  document.getElementById('cat-chip-all').className = 'cat-chip-all' + (code === null ? ' active' : '');
+  document.querySelectorAll('.cat-chip').forEach(b => {
+    const c = CATEGORIES.find(cat => b.style.borderColor === cat.border || b.textContent.trim().includes(cat.name));
+    if (!c) return;
+    const isActive = c.code === code;
+    b.className = 'cat-chip' + (isActive ? ' active' : '');
+    b.style.background = isActive ? c.bg : 'transparent';
+  });
+  detailPage = 1;
+  rebuildDetailHeader();
+  renderDetailPage();
+}
+
+function filterDetailTable() {
+  detailSearchStr = document.getElementById('det-search').value.trim().toLowerCase();
+  detailPersonFilter = document.getElementById('det-person-filter').value;
+  detailPage = 1;
+  rebuildDetailHeader();
+
+  // Show/hide active person tag
+  const tagEl = document.getElementById('det-person-tag');
+  if (detailPersonFilter) {
+    tagEl.style.display = 'block';
+    tagEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)">
+      직원 필터:
+      <div class="filter-tag">👤 ${detailPersonFilter}
+        <button class="filter-tag-remove" onclick="clearDetailPersonFilter()">×</button>
+      </div>
+      <span style="color:var(--text3)">(${detailTableData.filter(d=>d.Name===detailPersonFilter).length}건)</span>
+    </div>`;
+  } else {
+    tagEl.style.display = 'none';
+  }
+
+  renderDetailPage();
+}
+
+function clearDetailPersonFilter() {
+  document.getElementById('det-person-filter').value = '';
+  filterDetailTable();
+}
+
+function sortDetail(col) {
+  if (detailSortCol === col) detailSortAsc = !detailSortAsc;
+  else { detailSortCol = col; detailSortAsc = true; }
+  renderDetail(detailTableData);
+}
+
+function renderDetailPage() {
+  let data = [...detailTableData];
+
+  // Category filter
+  if (detailCatFilter) {
+    data = data.filter(d => { const c = getCat(d.Task); return c && c.code === detailCatFilter; });
+  }
+
+  // Person filter
+  if (detailPersonFilter) {
+    data = data.filter(d => d.Name === detailPersonFilter);
+  }
+
+  // Search filter
+  if (detailSearchStr) {
+    data = data.filter(d => {
+      const str = [d.Name, d['Sponsor Name'], d['Project Name'], d.Task, d.dateStr].join(' ').toLowerCase();
+      return str.includes(detailSearchStr);
+    });
+  }
+
+  // Sort
+  data.sort((a, b) => {
+    const av = a[detailSortCol], bv = b[detailSortCol];
+    if (detailSortCol === 'Hours') return detailSortAsc ? av - bv : bv - av;
+    return detailSortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+  });
+
+  const total = data.length;
+  const pages = Math.max(1, Math.ceil(total / DETAIL_PAGE_SIZE));
+  if (detailPage > pages) detailPage = pages;
+
+  const slice = data.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
+
+  document.getElementById('detail-count').textContent = `총 ${total}건`;
+
+  document.getElementById('det-body').innerHTML = slice.map(d => '<tr>' + DET_COLS.map(c => {
+    if (c.key === 'Hours') return `<td class="td-num">${d.Hours.toFixed(1)}h</td>`;
+    if (c.key === 'Task') {
+      const t = String(d[c.key]).replace(/\s*\(.*?\)/g, '').trim();
+      const style = getTaskStyle(d[c.key]);
+      const short = t.length > 26 ? t.slice(0, 26) + '…' : t;
+      return `<td style="white-space:nowrap"><span class="cat-badge" style="color:${style.color};background:${style.bg};border-color:${style.border}"><span class="cat-dot" style="background:${style.color}"></span>${short}</span></td>`;
     }
-    if (k === 'dateStr') return `<td class="td-muted">${d[k]}</td>`;
-    const v = String(d[k] || '—');
-    return `<td>${v.length > 28 ? v.slice(0, 28) + '…' : v}</td>`;
+    if (c.key === 'dateStr') return `<td class="td-muted">${d[c.key]}</td>`;
+    const v = String(d[c.key] || '—');
+    return `<td>${v.length > 24 ? v.slice(0, 24) + '…' : v}</td>`;
   }).join('') + '</tr>').join('');
 
-  if (data.length > 200) {
-    document.getElementById('det-body').innerHTML += `<tr><td colspan="${cols.length}" style="text-align:center;color:var(--text2);padding:12px;font-size:12px">... 상위 200건만 표시 (전체 ${data.length}건)</td></tr>`;
+  // Pagination
+  const maxBtns = 7;
+  let pageNums = [];
+  if (pages <= maxBtns) {
+    pageNums = Array.from({length: pages}, (_, i) => i+1);
+  } else {
+    const half = Math.floor(maxBtns / 2);
+    let start = Math.max(1, detailPage - half);
+    let end = Math.min(pages, start + maxBtns - 1);
+    if (end - start < maxBtns - 1) start = Math.max(1, end - maxBtns + 1);
+    pageNums = Array.from({length: end - start + 1}, (_, i) => start + i);
   }
+
+  document.getElementById('pagination').innerHTML = `
+    <div style="color:var(--text2)">${(detailPage-1)*DETAIL_PAGE_SIZE+1}–${Math.min(detailPage*DETAIL_PAGE_SIZE, total)} / 총 ${total}건</div>
+    <div class="page-btns">
+      <button class="page-btn" onclick="gotoPage(1)" ${detailPage === 1 ? 'disabled' : ''}>«</button>
+      <button class="page-btn" onclick="gotoPage(${detailPage-1})" ${detailPage === 1 ? 'disabled' : ''}>‹</button>
+      ${pageNums.map(n => `<button class="page-btn${n===detailPage?' active':''}" onclick="gotoPage(${n})">${n}</button>`).join('')}
+      <button class="page-btn" onclick="gotoPage(${detailPage+1})" ${detailPage === pages ? 'disabled' : ''}>›</button>
+      <button class="page-btn" onclick="gotoPage(${pages})" ${detailPage === pages ? 'disabled' : ''}>»</button>
+    </div>
+  `;
+}
+
+function gotoPage(p) { detailPage = p; renderDetailPage(); }
+
+// ── TASK MAP ──────────────────────────────────────────────
+const CAT_ICONS = {
+  'BIL-S': '💼', 'BIL-C': '🔬', 'BD': '📈',
+  'RD': '⚙️', 'OPS': '🖥️', 'ADM': '📋', 'LD': '🎓', 'LV': '🌴'
+};
+
+function renderTaskMap(data) {
+  if (!data || data.length === 0) {
+    document.getElementById('taskmap-content').innerHTML = '<div class="empty">데이터를 업로드하면 태스크 분류가 표시됩니다.</div>';
+    return;
+  }
+
+  // Aggregate hours per task
+  const taskHours = {};
+  data.forEach(d => {
+    const t = String(d.Task).replace(/\s*\(.*?\)/g, '').trim();
+    taskHours[t] = (taskHours[t] || 0) + d.Hours;
+  });
+
+  const totalHours = Object.values(taskHours).reduce((s, v) => s + v, 0);
+
+  // Group tasks by category
+  const catMap = {}; // code -> { cat, tasks: [{name, hours}] }
+  const unmatched = [];
+
+  Object.entries(taskHours).forEach(([task, hours]) => {
+    const cat = getCat(task);
+    if (cat) {
+      if (!catMap[cat.code]) catMap[cat.code] = { cat, tasks: [] };
+      catMap[cat.code].tasks.push({ name: task, hours });
+    } else {
+      unmatched.push({ name: task, hours });
+    }
+  });
+
+  // Sort tasks within each category by hours desc
+  Object.values(catMap).forEach(g => g.tasks.sort((a, b) => b.hours - a.hours));
+
+  // Render in CATEGORIES order
+  const cards = CATEGORIES.map(cat => {
+    const group = catMap[cat.code];
+    if (!group) {
+      return `<div class="taskmap-card" style="border-color:${cat.border};opacity:.5">
+        <div class="taskmap-header" style="background:${cat.bg}">
+          <div class="taskmap-icon" style="background:${cat.color}20">${CAT_ICONS[cat.code] || '📁'}</div>
+          <div>
+            <div class="taskmap-code" style="color:${cat.color}">${cat.code}</div>
+            <div class="taskmap-name">${cat.name}</div>
+          </div>
+          <div class="taskmap-meta">데이터 없음</div>
+        </div>
+        <div class="taskmap-tasks"><div class="taskmap-empty">이 기간에 해당 태스크 없음</div></div>
+      </div>`;
+    }
+
+    const catTotal = group.tasks.reduce((s, t) => s + t.hours, 0);
+    const catPct = totalHours > 0 ? Math.round(catTotal / totalHours * 100) : 0;
+    const maxH = group.tasks[0]?.hours || 1;
+
+    const taskRows = group.tasks.map(t => {
+      const barW = Math.round(t.hours / maxH * 100);
+      const pct = totalHours > 0 ? (t.hours / totalHours * 100).toFixed(1) : 0;
+      return `<div class="taskmap-task-row" onclick="jumpToTask('${t.name.replace(/'/g,"\'")}')">
+        <div style="flex:1;min-width:0">
+          <div class="taskmap-task-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</div>
+          <div class="taskmap-task-bar" style="width:${barW}%;background:${cat.color}44"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;margin-left:10px;flex-shrink:0">
+          <div class="taskmap-task-hours" style="color:${cat.color}">${t.hours.toFixed(1)}h</div>
+          <div style="font-size:10px;color:var(--text3)">${pct}%</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div class="taskmap-card" style="border-color:${cat.border}">
+      <div class="taskmap-header" style="background:${cat.bg}">
+        <div class="taskmap-icon" style="background:${cat.color}22">${CAT_ICONS[cat.code] || '📁'}</div>
+        <div style="min-width:0">
+          <div class="taskmap-code" style="color:${cat.color}">${cat.code} · ${cat.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:1px">${group.tasks.length}개 태스크 · ${catTotal.toFixed(1)}h</div>
+        </div>
+        <div class="taskmap-meta" style="color:${cat.color};font-weight:700">${catPct}%</div>
+      </div>
+      <div class="taskmap-tasks">${taskRows}</div>
+    </div>`;
+  }).join('');
+
+  // Unmatched tasks
+  let unmatchedHtml = '';
+  if (unmatched.length > 0) {
+    unmatched.sort((a, b) => b.hours - a.hours);
+    unmatchedHtml = `<div class="taskmap-unmatched">
+      <div class="taskmap-unmatched-title">⚠️ 미분류 태스크 (${unmatched.length}개) — 아래 태스크는 대분류에 자동 매핑되지 않았습니다</div>
+      <div class="taskmap-unmatched-tags">${unmatched.map(t =>
+        `<span class="taskmap-unmatched-tag" onclick="jumpToTask('${t.name.replace(/'/g,"\'")}')">
+          ${t.name} <strong>${t.hours.toFixed(1)}h</strong>
+        </span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('taskmap-content').innerHTML =
+    `<div class="taskmap-grid">${cards}</div>${unmatchedHtml}`;
+}
+
+function jumpToTask(taskName) {
+  // Switch to detail tab and filter by this task
+  const btn = document.querySelector('.view-tab[onclick*="detail"]');
+  switchView('detail', btn);
+  document.getElementById('det-search').value = taskName;
+  filterDetailTable();
+}
+
+// ── PRINT REPORT ──────────────────────────────────────────
+function printReport() {
+  const data = filteredData;
+  if (!data || data.length === 0) { alert('출력할 데이터가 없습니다.'); return; }
+
+  // ── Aggregate summaries ──
+  const totalH = data.reduce((s, d) => s + d.Hours, 0);
+  const billableH = data.filter(d => d.isBillable).reduce((s, d) => s + d.Hours, 0);
+  const nonBillH = totalH - billableH;
+  const people = [...new Set(data.map(d => d.Name))];
+  const sponsors = [...new Set(data.map(d => d['Sponsor Name']))];
+  const dateRange = data.length ? (() => {
+    const dates = data.map(d => d.dateStr).sort();
+    return dates[0] === dates[dates.length-1] ? dates[0] : `${dates[0]} ~ ${dates[dates.length-1]}`;
+  })() : '-';
+
+  // ── By person ──
+  const byPerson = {};
+  data.forEach(d => {
+    if (!byPerson[d.Name]) byPerson[d.Name] = { total: 0, billable: 0 };
+    byPerson[d.Name].total += d.Hours;
+    if (d.isBillable) byPerson[d.Name].billable += d.Hours;
+  });
+  const personRows = Object.entries(byPerson).sort((a,b) => b[1].total - a[1].total)
+    .map(([n, v]) => `<tr>
+      <td>${n}</td>
+      <td class="num">${v.total.toFixed(1)}h</td>
+      <td class="num">${v.billable.toFixed(1)}h</td>
+      <td class="num">${v.total > 0 ? Math.round(v.billable/v.total*100) : 0}%</td>
+    </tr>`).join('');
+
+  // ── By category ──
+  const byCat = {};
+  data.forEach(d => {
+    const cat = getCat(d.Task);
+    const key = cat ? `${cat.code} ${cat.name}` : '미분류';
+    const color = cat ? cat.color : '#888';
+    if (!byCat[key]) byCat[key] = { hours: 0, color };
+    byCat[key].hours += d.Hours;
+  });
+  const catRows = Object.entries(byCat).sort((a,b) => b[1].hours - a[1].hours)
+    .map(([k, v]) => {
+      const pct = totalH > 0 ? (v.hours / totalH * 100).toFixed(1) : 0;
+      const barW = Math.round(v.hours / totalH * 100);
+      return `<tr>
+        <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${v.color};margin-right:6px;vertical-align:middle"></span>${k}</td>
+        <td class="num">${v.hours.toFixed(1)}h</td>
+        <td class="num">${pct}%</td>
+        <td style="padding-right:12px"><div style="background:#eee;border-radius:3px;height:6px;width:100%"><div style="background:${v.color};width:${barW}%;height:6px;border-radius:3px"></div></div></td>
+      </tr>`;
+    }).join('');
+
+  // ── By sponsor ──
+  const bySponsor = {};
+  data.forEach(d => {
+    if (!bySponsor[d['Sponsor Name']]) bySponsor[d['Sponsor Name']] = 0;
+    bySponsor[d['Sponsor Name']] += d.Hours;
+  });
+  const sponsorRows = Object.entries(bySponsor).sort((a,b) => b[1]-a[1])
+    .map(([s, h]) => `<tr>
+      <td>${s}</td>
+      <td class="num">${h.toFixed(1)}h</td>
+      <td class="num">${totalH > 0 ? (h/totalH*100).toFixed(1) : 0}%</td>
+    </tr>`).join('');
+
+  // ── Detail table rows (all, no pagination) ──
+  const sorted = [...data].sort((a,b) => a.dateStr.localeCompare(b.dateStr) || a.Name.localeCompare(b.Name));
+  const detailRows = sorted.map(d => {
+    const cat = getCat(d.Task);
+    const catLabel = cat ? cat.code : '—';
+    const catColor = cat ? cat.color : '#888';
+    const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
+    return `<tr>
+      <td class="muted">${d.dateStr}</td>
+      <td>${d.Name}</td>
+      <td>${d['Sponsor Name']}</td>
+      <td>${(d['Project Name']||'').slice(0,30)}</td>
+      <td><span style="color:${catColor};font-weight:700;font-size:10px">${catLabel}</span></td>
+      <td>${task.slice(0,30)}</td>
+      <td class="num">${d.Hours.toFixed(1)}h</td>
+    </tr>`;
+  }).join('');
+
+  const printDate = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+  const activeFilter = detailPersonFilter ? ` · 직원: ${detailPersonFilter}` : '';
+  const catFilterLabel = detailCatFilter ? ` · 대분류: ${detailCatFilter}` : '';
+
+  const html = `<!DOCTYPE html><html lang="ko"><head>
+<meta charset="UTF-8">
+<title>Timesheet 보고서</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Malgun Gothic', sans-serif; font-size: 12px; color: #1a1a18; background: white; }
+  .page { max-width: 960px; margin: 0 auto; padding: 36px 40px 60px; }
+
+  /* HEADER */
+  .report-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 16px; border-bottom: 2px solid #3266ad; }
+  .report-title { font-size: 22px; font-weight: 800; color: #3266ad; }
+  .report-meta { font-size: 11px; color: #888; text-align: right; line-height: 1.8; }
+
+  /* SUMMARY CARDS */
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .summary-card { background: #f5f5f3; border-radius: 8px; padding: 14px 16px; }
+  .summary-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .summary-value { font-size: 24px; font-weight: 800; color: #1a1a18; }
+  .summary-sub { font-size: 10px; color: #aaa; margin-top: 2px; }
+
+  /* SECTION */
+  .section { margin-bottom: 28px; }
+  .section-title { font-size: 13px; font-weight: 700; color: #3266ad; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e0e8f5; }
+
+  /* TABLES */
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { text-align: left; padding: 6px 10px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #888; border-bottom: 1px solid #e5e5e2; background: #fafaf8; }
+  td { padding: 6px 10px; border-bottom: 1px solid #f0f0ec; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:nth-child(even) td { background: #fafaf8; }
+  .num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .muted { color: #888; }
+
+  /* TWO COL LAYOUT */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 28px; }
+
+  /* FOOTER */
+  .footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid #e5e5e2; font-size: 10px; color: #bbb; display: flex; justify-content: space-between; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 20px 24px 40px; }
+    .no-break { page-break-inside: avoid; }
+    .page-break { page-break-before: always; }
+  }
+</style>
+</head><body><div class="page">
+
+  <div class="report-header">
+    <div>
+      <div class="report-title">Timesheet 보고서</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">기간: ${dateRange}${activeFilter}${catFilterLabel}</div>
+    </div>
+    <div class="report-meta">
+      출력일: ${printDate}<br>
+      참여 인원: ${people.length}명 · 스폰서: ${sponsors.length}개사
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card" style="background:#eff6ff;border-left:3px solid #3266ad">
+      <div class="summary-label">총 투입 시간</div>
+      <div class="summary-value" style="color:#3266ad">${totalH.toFixed(1)}h</div>
+    </div>
+    <div class="summary-card" style="background:#f0fdf4;border-left:3px solid #16A34A">
+      <div class="summary-label">청구 가능</div>
+      <div class="summary-value" style="color:#16A34A">${billableH.toFixed(1)}h</div>
+      <div class="summary-sub">${totalH > 0 ? Math.round(billableH/totalH*100) : 0}%</div>
+    </div>
+    <div class="summary-card" style="background:#fef2f2;border-left:3px solid #DC2626">
+      <div class="summary-label">청구 불가</div>
+      <div class="summary-value" style="color:#DC2626">${nonBillH.toFixed(1)}h</div>
+      <div class="summary-sub">${totalH > 0 ? Math.round(nonBillH/totalH*100) : 0}%</div>
+    </div>
+    <div class="summary-card" style="background:#faf5ff;border-left:3px solid #9333EA">
+      <div class="summary-label">1인 평균</div>
+      <div class="summary-value" style="color:#9333EA">${people.length > 0 ? (totalH/people.length).toFixed(1) : 0}h</div>
+      <div class="summary-sub">${people.length}명 기준</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="section no-break">
+      <div class="section-title">대분류별 시간</div>
+      <table>
+        <thead><tr><th>대분류</th><th class="num">시간</th><th class="num">비율</th><th style="min-width:80px">분포</th></tr></thead>
+        <tbody>${catRows}</tbody>
+      </table>
+    </div>
+    <div class="section no-break">
+      <div class="section-title">스폰서별 시간</div>
+      <table>
+        <thead><tr><th>스폰서</th><th class="num">시간</th><th class="num">비율</th></tr></thead>
+        <tbody>${sponsorRows}</tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section no-break">
+    <div class="section-title">직원별 시간</div>
+    <table>
+      <thead><tr><th>직원</th><th class="num">총 시간</th><th class="num">청구 가능</th><th class="num">청구 비율</th></tr></thead>
+      <tbody>${personRows}</tbody>
+    </table>
+  </div>
+
+  <div class="page-break"></div>
+  <div class="section">
+    <div class="section-title">상세 내역 (${data.length}건)</div>
+    <table>
+      <thead><tr><th>날짜</th><th>직원</th><th>스폰서</th><th>프로젝트</th><th>분류</th><th>태스크</th><th class="num">시간</th></tr></thead>
+      <tbody>${detailRows}</tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <span>Timesheet Analytics · 파일은 브라우저에서만 처리되며 서버에 저장되지 않습니다.</span>
+    <span>${printDate} 출력</span>
+  </div>
+
+</div></body></html>`;
+
+  const w = window.open('', '_blank', 'width=1000,height=800');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
+
+// ── EXCEL EXPORT (styled) ─────────────────────────────────
+function exportExcel() {
+  const XLS = window.XLSXStyle || window.XLSX;
+  const data = filteredData;
+  if (!data || data.length === 0) { alert('내보낼 데이터가 없습니다.'); return; }
+
+  const wb = XLS.utils.book_new();
+  const printDate = new Date().toLocaleDateString('ko-KR');
+
+  // ── Helpers ─────────────────────────────────────────────
+  const totalH = data.reduce((s, d) => s + d.Hours, 0);
+  const billH  = data.filter(d => d.isBillable).reduce((s, d) => s + d.Hours, 0);
+  const nonBH  = totalH - billH;
+  const people = [...new Set(data.map(d => d.Name))];
+  const dates  = data.map(d => d.dateStr).sort();
+  const dateRange = dates[0] === dates[dates.length-1] ? dates[0] : `${dates[0]} ~ ${dates[dates.length-1]}`;
+
+  function cell(v, s) { return { v, s, t: typeof v === 'number' ? 'n' : 's' }; }
+  function numCell(v, s) { return { v, s, t: 'n', z: '#,##0.0' }; }
+  function pctCell(v, s) { return { v, s, t: 'n', z: '0.0%' }; }
+
+  // ── Styles ──────────────────────────────────────────────
+  const BLUE  = '3266AD', DGRAY = '374151', LGRAY = 'F3F4F6', WHITE = 'FFFFFF';
+  const GREEN = '16A34A', RED   = 'DC2626', PURPLE= '7C3AED', AMBER = 'D97706';
+
+  const border = {
+    top:    { style: 'thin', color: { rgb: 'E5E7EB' } },
+    bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+    left:   { style: 'thin', color: { rgb: 'E5E7EB' } },
+    right:  { style: 'thin', color: { rgb: 'E5E7EB' } },
+  };
+  const boldBorder = {
+    top:    { style: 'medium', color: { rgb: BLUE } },
+    bottom: { style: 'medium', color: { rgb: BLUE } },
+    left:   { style: 'medium', color: { rgb: BLUE } },
+    right:  { style: 'medium', color: { rgb: BLUE } },
+  };
+
+  function hdr(v, bg, fg, sz) {
+    return cell(v, {
+      font: { bold: true, color: { rgb: fg || WHITE }, sz: sz || 11, name: 'Arial' },
+      fill: { fgColor: { rgb: bg || BLUE }, patternType: 'solid' },
+      alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+      border,
+    });
+  }
+  function dataCell(v, bold, align, color, bg, numFmt) {
+    const s = {
+      font: { bold: !!bold, color: { rgb: color || DGRAY }, sz: 10, name: 'Arial' },
+      alignment: { horizontal: align || 'left', vertical: 'center' },
+      border,
+    };
+    if (bg) s.fill = { fgColor: { rgb: bg }, patternType: 'solid' };
+    const t = typeof v === 'number' ? 'n' : 's';
+    const c = { v, s, t };
+    if (numFmt) c.z = numFmt;
+    return c;
+  }
+  function sectionHdr(v) {
+    return cell(v, {
+      font: { bold: true, color: { rgb: WHITE }, sz: 11, name: 'Arial' },
+      fill: { fgColor: { rgb: BLUE }, patternType: 'solid' },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: { bottom: { style: 'medium', color: { rgb: BLUE } } },
+    });
+  }
+  function blank(bg) {
+    return cell('', { fill: bg ? { fgColor: { rgb: bg }, patternType: 'solid' } : undefined });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 1: 요약 보고서
+  // ══════════════════════════════════════════════════════════
+  const S = [];
+  const merges = [];
+  let r = 0;
+
+  function addRow(arr) { S[r] = {}; arr.forEach((c, ci) => { if (c) S[r][String.fromCharCode(65+ci)] = c; }); r++; }
+  function addMerge(rs, re, cs, ce) { merges.push({ s: { r: rs, c: cs }, e: { r: re, c: ce } }); }
+
+  // ── Title block ────────────────────────────────────────
+  addRow([
+    cell('Timesheet 보고서', {
+      font: { bold: true, sz: 18, color: { rgb: WHITE }, name: 'Arial' },
+      fill: { fgColor: { rgb: BLUE }, patternType: 'solid' },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+    }),
+    blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE),
+    cell(`출력일: ${printDate}`, {
+      font: { sz: 10, color: { rgb: 'BFDBFE' }, name: 'Arial' },
+      fill: { fgColor: { rgb: BLUE }, patternType: 'solid' },
+      alignment: { horizontal: 'right', vertical: 'center' },
+    }),
+  ]);
+  addMerge(r-1, r-1, 0, 4);
+
+  addRow([
+    cell(`기간: ${dateRange}  |  참여 인원: ${people.length}명`, {
+      font: { sz: 10, color: { rgb: WHITE }, name: 'Arial' },
+      fill: { fgColor: { rgb: '1E40AF' }, patternType: 'solid' },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+    }),
+    blank('1E40AF'), blank('1E40AF'), blank('1E40AF'), blank('1E40AF'), blank('1E40AF'),
+  ]);
+  addMerge(r-1, r-1, 0, 5);
+  addRow([blank()]); // spacer
+
+  // ── KPI Cards (4 boxes across) ─────────────────────────
+  r++; // row for labels
+  const kpiRow = r - 1;
+  const kpis = [
+    { label: '총 투입 시간', value: totalH, unit: 'h', color: BLUE,   bg: 'DBEAFE' },
+    { label: '청구 가능',    value: billH,  unit: 'h', color: GREEN,  bg: 'DCFCE7' },
+    { label: '청구 불가',    value: nonBH,  unit: 'h', color: RED,    bg: 'FEE2E2' },
+    { label: '1인 평균',     value: people.length > 0 ? totalH/people.length : 0, unit: 'h', color: PURPLE, bg: 'EDE9FE' },
+  ];
+  // Labels row
+  S[kpiRow] = {};
+  kpis.forEach((k, i) => {
+    const col = String.fromCharCode(65 + i*1 + (i > 0 ? i : 0)); // A, B, C, D with gaps handled by merge
+  });
+  // Use columns A,B for kpi1, C for gap... just place them with spacers
+  // Cols: A-B kpi1, C-D kpi2, E-F... but we only have 6 cols
+  // Place 4 KPIs across A-D (one per col, merged) with rows: label, value, pct
+  S[r] = {};
+  [0,1,2,3].forEach(i => {
+    const k = kpis[i];
+    S[r][String.fromCharCode(65+i)] = cell(k.label, {
+      font: { bold: true, sz: 9, color: { rgb: k.color }, name: 'Arial' },
+      fill: { fgColor: { rgb: k.bg }, patternType: 'solid' },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border,
+    });
+  });
+  // Add 2 more blank cols
+  S[r]['E'] = blank(LGRAY); S[r]['F'] = blank(LGRAY);
+  r++;
+
+  S[r] = {};
+  [0,1,2,3].forEach(i => {
+    const k = kpis[i];
+    S[r][String.fromCharCode(65+i)] = {
+      v: Math.round(k.value * 10) / 10,
+      t: 'n', z: '#,##0.0"h"',
+      s: {
+        font: { bold: true, sz: 20, color: { rgb: k.color }, name: 'Arial' },
+        fill: { fgColor: { rgb: k.bg }, patternType: 'solid' },
+        alignment: { horizontal: 'center', vertical: 'center' },
+        border,
+      }
+    };
+  });
+  S[r]['E'] = blank(LGRAY); S[r]['F'] = blank(LGRAY);
+  r++;
+
+  S[r] = {};
+  [0,1,2,3].forEach(i => {
+    const k = kpis[i];
+    const pct = totalH > 0 ? Math.round(k.value/totalH*100) : 0;
+    const sub = i === 0 ? `${people.length}명 기준` :
+                i === 3 ? `${people.length}명 기준` :
+                `전체의 ${pct}%`;
+    S[r][String.fromCharCode(65+i)] = cell(sub, {
+      font: { sz: 9, color: { rgb: k.color }, name: 'Arial' },
+      fill: { fgColor: { rgb: k.bg }, patternType: 'solid' },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border,
+    });
+  });
+  S[r]['E'] = blank(LGRAY); S[r]['F'] = blank(LGRAY);
+  r++;
+  addRow([blank()]); // spacer
+
+  // ── Category summary ──────────────────────────────────
+  addRow([sectionHdr('대분류별 시간'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
+  addMerge(r-1, r-1, 0, 5);
+
+  addRow([
+    hdr('대분류', '1E3A5F'), hdr('태스크 유형', '1E3A5F'), hdr('시간 (h)', '1E3A5F'),
+    hdr('비율 (%)', '1E3A5F'), hdr('청구 가능 (h)', '1E3A5F'), hdr('청구 불가 (h)', '1E3A5F'),
+  ]);
+
+  const byCat = {};
+  data.forEach(d => {
+    const cat = getCat(d.Task);
+    const key = cat ? cat.code : '미분류';
+    const name = cat ? cat.name : '미분류';
+    const color = cat ? cat.color.replace('#','') : '888888';
+    if (!byCat[key]) byCat[key] = { name, color, total: 0, billable: 0 };
+    byCat[key].total += d.Hours;
+    if (d.isBillable) byCat[key].billable += d.Hours;
+  });
+
+  Object.entries(byCat).sort((a,b) => b[1].total - a[1].total).forEach(([code, v], i) => {
+    const bg = i % 2 === 0 ? 'FFFFFF' : 'F8FAFF';
+    const pct = totalH > 0 ? v.total/totalH : 0;
+    addRow([
+      dataCell(code, true, 'center', v.color, bg),
+      dataCell(v.name, false, 'left', DGRAY, bg),
+      { v: Math.round(v.total*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:v.color},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: pct, t:'n', z:'0.0%', s:{ font:{sz:10,color:{rgb:DGRAY},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: Math.round(v.billable*10)/10, t:'n', z:'#,##0.0', s:{ font:{sz:10,color:{rgb:GREEN},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: Math.round((v.total-v.billable)*10)/10, t:'n', z:'#,##0.0', s:{ font:{sz:10,color:{rgb:RED},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+    ]);
+  });
+  // Total row
+  addRow([
+    hdr('합계', '374151'), hdr('', '374151'),
+    { v: Math.round(totalH*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:11,color:{rgb:WHITE},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+    { v: 1, t:'n', z:'0.0%', s:{ font:{bold:true,sz:10,color:{rgb:WHITE},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+    { v: Math.round(billH*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:'86efac'},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+    { v: Math.round(nonBH*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:'fca5a5'},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+  ]);
+  addRow([blank()]);
+
+  // ── Sponsor summary ───────────────────────────────────
+  addRow([sectionHdr('스폰서별 시간'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
+  addMerge(r-1, r-1, 0, 5);
+  addRow([hdr('스폰서', '1E3A5F'), hdr('시간 (h)', '1E3A5F'), hdr('비율 (%)', '1E3A5F'), hdr('', '1E3A5F'), hdr('', '1E3A5F'), hdr('', '1E3A5F')]);
+
+  const bySponsor = {};
+  data.forEach(d => { bySponsor[d['Sponsor Name']] = (bySponsor[d['Sponsor Name']]||0) + d.Hours; });
+  Object.entries(bySponsor).sort((a,b)=>b[1]-a[1]).forEach(([s,h],i) => {
+    const bg = i%2===0?'FFFFFF':'F8FAFF';
+    addRow([
+      dataCell(s, false, 'left', DGRAY, bg),
+      { v: Math.round(h*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:BLUE},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: totalH>0?h/totalH:0, t:'n', z:'0.0%', s:{ font:{sz:10,color:{rgb:DGRAY},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      dataCell('', false, 'left', DGRAY, bg), dataCell('', false, 'left', DGRAY, bg), dataCell('', false, 'left', DGRAY, bg),
+    ]);
+  });
+  addRow([blank()]);
+
+  // ── Person summary ────────────────────────────────────
+  addRow([sectionHdr('직원별 시간'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
+  addMerge(r-1, r-1, 0, 5);
+  addRow([hdr('직원', '1E3A5F'), hdr('총 시간 (h)', '1E3A5F'), hdr('청구 가능 (h)', '1E3A5F'), hdr('청구 불가 (h)', '1E3A5F'), hdr('청구 비율 (%)', '1E3A5F'), hdr('', '1E3A5F')]);
+
+  const byPerson = {};
+  data.forEach(d => {
+    if (!byPerson[d.Name]) byPerson[d.Name] = { total:0, bill:0 };
+    byPerson[d.Name].total += d.Hours;
+    if (d.isBillable) byPerson[d.Name].bill += d.Hours;
+  });
+  Object.entries(byPerson).sort((a,b)=>b[1].total-a[1].total).forEach(([name,v],i) => {
+    const bg = i%2===0?'FFFFFF':'F8FAFF';
+    const pct = v.total>0 ? v.bill/v.total : 0;
+    addRow([
+      dataCell(name, true, 'left', DGRAY, bg),
+      { v: Math.round(v.total*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:BLUE},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: Math.round(v.bill*10)/10, t:'n', z:'#,##0.0', s:{ font:{sz:10,color:{rgb:GREEN},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: Math.round((v.total-v.bill)*10)/10, t:'n', z:'#,##0.0', s:{ font:{sz:10,color:{rgb:RED},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      { v: pct, t:'n', z:'0.0%', s:{ font:{bold:true,sz:10,color:{rgb:pct>=0.8?GREEN:pct>=0.5?AMBER:RED},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      dataCell('', false, 'left', DGRAY, bg),
+    ]);
+  });
+
+  // Build sheet 1
+  const ws1 = XLS.utils.aoa_to_sheet([[]]);
+  ws1['!data'] = [];
+  Object.keys(S).forEach(ri => { ws1['!data'][ri] = S[ri]; Object.keys(S[ri]).forEach(col => { ws1[col+String(Number(ri)+1)] = S[ri][col]; }); });
+  ws1['!ref'] = `A1:F${r}`;
+  ws1['!merges'] = merges;
+  ws1['!cols'] = [{ wch: 14 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 14 }, { wch: 14 }];
+  ws1['!rows'] = Array.from({length: r}, (_, i) => ({ hpt: i < 2 ? 28 : 20 }));
+
+  // Fix: write cells directly
+  const ws1clean = { '!ref': `A1:F${r}`, '!merges': merges, '!cols': ws1['!cols'], '!rows': ws1['!rows'] };
+  Object.keys(S).forEach(ri => {
+    Object.keys(S[ri]).forEach(col => {
+      ws1clean[col + (Number(ri)+1)] = S[ri][col];
+    });
+  });
+
+  XLS.utils.book_append_sheet(wb, ws1clean, '요약 보고서');
+
+  // ══════════════════════════════════════════════════════════
+  // SHEET 2: 상세 내역
+  // ══════════════════════════════════════════════════════════
+  const colHdrs = ['날짜','직원','스폰서','프로젝트','대분류','태스크','시간(h)','청구여부'];
+  const detHead = colHdrs.map(h => hdr(h, '1E3A5F'));
+
+  const sorted = [...data].sort((a,b) => a.dateStr.localeCompare(b.dateStr) || a.Name.localeCompare(b.Name));
+  const detRows = sorted.map((d, i) => {
+    const bg = i%2===0 ? 'FFFFFF' : 'F8FAFF';
+    const cat = getCat(d.Task);
+    const catCode = cat ? cat.code : '—';
+    const catColor = cat ? cat.color.replace('#','') : '888888';
+    const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
+    const billColor = d.isBillable ? GREEN : '9CA3AF';
+    return [
+      dataCell(d.dateStr, false, 'center', '6B7280', bg),
+      dataCell(d.Name, true, 'left', DGRAY, bg),
+      dataCell(d['Sponsor Name'], false, 'left', DGRAY, bg),
+      dataCell(d['Project Name']||'—', false, 'left', DGRAY, bg),
+      dataCell(catCode, true, 'center', catColor, bg),
+      dataCell(task, false, 'left', DGRAY, bg),
+      { v: d.Hours, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:BLUE},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
+      dataCell(d.isBillable ? '✔ 청구가능' : '✘ 청구불가', true, 'center', billColor, bg),
+    ];
+  });
+
+  const ws2data = [detHead, ...detRows];
+  const ws2 = XLS.utils.aoa_to_sheet(ws2data);
+  ws2['!cols'] = [{ wch:12 },{ wch:14 },{ wch:20 },{ wch:22 },{ wch:10 },{ wch:28 },{ wch:10 },{ wch:12 }];
+  ws2['!rows'] = [{ hpt: 22 }, ...Array.from({length: detRows.length}, () => ({ hpt: 18 }))];
+
+  // Re-apply styles (aoa_to_sheet loses style objects — we need to re-assign)
+  ws2data.forEach((row, ri) => {
+    row.forEach((cellObj, ci) => {
+      const addr = XLS.utils.encode_cell({ r: ri, c: ci });
+      if (cellObj && cellObj.s) ws2[addr] = cellObj;
+    });
+  });
+
+  XLS.utils.book_append_sheet(wb, ws2, '상세 내역');
+
+  // ── Save ───────────────────────────────────────────────
+  const fname = `timesheet_report_${dates[dates.length-1] || 'export'}.xlsx`;
+  XLS.writeFile(wb, fname);
 }
 </script>
 </body>
