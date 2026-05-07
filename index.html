@@ -288,16 +288,18 @@
   .person-card {
     background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius);
     padding: 1rem; cursor: pointer; transition: all .15s; position: relative;
+    display: flex; flex-direction: column;
   }
   .person-card:hover { border-color: var(--blue); box-shadow: 0 2px 8px rgba(50,102,173,.12); transform: translateY(-1px); }
   .person-avatar {
     width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: 700; color: white; margin-bottom: .6rem;
+    font-size: 15px; font-weight: 700; color: white; margin-bottom: .6rem; flex-shrink: 0;
   }
-  .person-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-  .person-hours { font-size: 22px; font-weight: 700; color: var(--text); }
-  .person-sub { font-size: 11px; color: var(--text3); }
-  .person-bar { height: 3px; background: var(--surface2); border-radius: 99px; margin-top: .6rem; overflow: hidden; }
+  .person-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; min-height: 18px; }
+  .person-hours { font-size: 22px; font-weight: 700; color: var(--text); min-height: 30px; }
+  .person-sub { font-size: 11px; color: var(--text3); min-height: 16px; }
+  .person-team { font-size: 10px; font-weight: 600; margin-top: 2px; min-height: 14px; }
+  .person-bar { height: 3px; background: var(--surface2); border-radius: 99px; margin-top: .6rem; overflow: hidden; flex-shrink: 0; }
   .person-bar-fill { height: 100%; border-radius: 99px; }
 
   /* ── MODAL ── */
@@ -1643,7 +1645,7 @@ function renderBillableView(data) {
   }
 
   const personsHeat = sortPersons(_heatSortKey, _heatSortAsc).filter(p => personMap[p].bill > 0);
-  const personsRank = sortPersons(_billSortKey, _billSortAsc);
+  const personsRank = sortPersons(_billSortKey, _billSortAsc).filter(p => personMap[p].total > 0 && personMap[p].bill > 0);
 
   // ── 4. 히트맵 최대값 ──
   let maxBill = 0;
@@ -1673,14 +1675,17 @@ function renderBillableView(data) {
   const billAll  = data.filter(d=>d.isBillable).reduce((s,d)=>s+d.Hours,0);
   const billPctAll = totalAll > 0 ? (billAll/totalAll*100).toFixed(1) : 0;
 
+  // 0% 직원 제외한 personMap
+  const personMapBillable = Object.fromEntries(Object.entries(personMap).filter(([,v])=>v.total>0&&v.bill>0));
+
   // 상위 5 직원 (billable 시간 기준)
-  const top5bill = Object.entries(personMap).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
+  const top5bill = Object.entries(personMapBillable).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
   // 상위 5 직원 (non-billable 기준)
-  const top5nonbill = Object.entries(personMap).sort((a,b)=>(b[1].total-b[1].bill)-(a[1].total-a[1].bill)).slice(0,5);
+  const top5nonbill = Object.entries(personMapBillable).sort((a,b)=>(b[1].total-b[1].bill)-(a[1].total-a[1].bill)).slice(0,5);
   // 상위 5 프로젝트 (billable 시간 기준)
   const top5proj = Object.entries(projTotals).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
   // Billable 90%+ 직원 목록
-  const high90 = Object.entries(personMap).filter(([,v])=>v.total>0&&v.bill/v.total>=0.9).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
+  const high90 = Object.entries(personMapBillable).filter(([,v])=>v.total>0&&v.bill/v.total>=0.9).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
 
   function tooltipRows(items, labelFn, valFn, color) {
     return items.map(item => `
@@ -1728,11 +1733,11 @@ function renderBillableView(data) {
       '⚠️ Non-Billable 상위 5명',
       tooltipRows(top5nonbill, ([n])=>n, ([,v])=>`${(v.total-v.bill).toFixed(1)}h`, '#f87171')
     )}
-    ${cardWithTooltip('var(--blue)','참여 직원 수',`${Object.keys(personMap).length}명`,`프로젝트 ${projects.length}건`,
+    ${cardWithTooltip('var(--blue)','참여 직원 수',`${Object.keys(personMapBillable).length}명`,`프로젝트 ${projects.length}건`,
       '📋 Billable 상위 5 프로젝트',
       tooltipRows(top5proj, ([n])=>n.length>18?n.slice(0,17)+'…':n, ([,v])=>`${v.bill.toFixed(1)}h`, '#60a5fa')
     )}
-    ${cardWithTooltip('var(--amber)','Billable 90%+ 직원',`${high90.length}명`,`전체 ${Object.keys(personMap).length}명 중`,
+    ${cardWithTooltip('var(--amber)','Billable 90%+ 직원',`${high90.length}명`,`전체 ${Object.keys(personMapBillable).length}명 중`,
       '⭐ Billable 90%+ 직원',
       tooltipRows(high90, ([n])=>n, ([,v])=>`${(v.bill/v.total*100).toFixed(0)}%`, '#fbbf24')
     )}
@@ -2282,7 +2287,7 @@ function renderPeople(data) {
         <div class="person-name">${name}</div>
         <div class="person-hours" style="color:${noData ? 'var(--text3)' : 'var(--text)'}">${noData ? '—' : hours.toFixed(1) + 'h'}</div>
         <div class="person-sub" style="color:${noData ? 'var(--text3)' : ''}">${noData ? '기록 없음' : '청구 가능 ' + billPct + '%'}</div>
-        ${memberInfo ? `<div style="font-size:10px;color:${color};margin-top:2px;font-weight:600">${memberInfo.team}</div>` : ''}
+        <div class="person-team" style="color:${memberInfo ? color : 'transparent'}">${memberInfo ? memberInfo.team : '&nbsp;'}</div>
         <div class="person-bar"><div class="person-bar-fill" style="width:${pct}%;background:${noData ? '#e5e7eb' : color}"></div></div>
       </div>`;
     }).join('');
