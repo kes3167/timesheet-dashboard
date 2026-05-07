@@ -727,20 +727,23 @@
 
     <!-- People -->
     <div id="view-people" style="display:none">
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-          <div class="card-title" style="margin-bottom:0">직원별 투입 시간 <span style="font-size:11px;color:var(--text2);font-weight:400">— 카드 클릭 시 상세 보기</span></div>
-          <div style="display:flex;gap:6px">
-            <button class="btn-sm" id="people-view-card" onclick="setPeopleView('card')" style="border-color:var(--blue);color:var(--blue)">카드</button>
-            <button class="btn-sm" id="people-view-chart" onclick="setPeopleView('chart')">차트</button>
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start">
+        <!-- 좌측: 직원 목록 -->
+        <div class="card" style="padding:0;overflow:hidden;position:sticky;top:70px">
+          <div style="padding:.75rem 1rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:700;color:var(--text)">직원 목록</span>
+            <span id="people-count" style="font-size:11px;color:var(--text3)"></span>
           </div>
+          <div style="padding:.5rem">
+            <input type="text" id="people-search" placeholder="이름 검색..." oninput="filterPeopleList()"
+              style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;outline:none;background:var(--surface2)">
+          </div>
+          <div id="people-list" style="overflow-y:auto;max-height:calc(100vh - 220px)"></div>
         </div>
-        <div id="people-card-view">
-          <div class="people-grid" id="people-grid"></div>
-        </div>
-        <div id="people-chart-view" style="display:none">
-          <div style="position:relative;" id="people-wrap">
-            <canvas id="peopleChart"></canvas>
+        <!-- 우측: 상세 패널 -->
+        <div id="people-detail-panel">
+          <div style="display:flex;align-items:center;justify-content:center;height:300px;color:var(--text3);font-size:14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border2)">
+            ← 왼쪽에서 직원을 선택하세요
           </div>
         </div>
       </div>
@@ -1204,31 +1207,13 @@ function getISOWeek(dateStr) {
   const y = new Date(d.getFullYear(),0,1);
   return `${d.getFullYear()}-W${String(Math.ceil((((d-y)/86400000)+1)/7)).padStart(2,'0')}`;
 }
+// 월 기준 주 key: "YYYY-MM-Wn" (1일~7일=1주, 8일~14일=2주, ...)
 function getWeekRange(weekKey) {
   const [year,wStr] = weekKey.split('-W'); const w=parseInt(wStr);
   const jan1=new Date(parseInt(year),0,1); const dow=jan1.getDay()||7;
   const start=new Date(jan1); start.setDate(jan1.getDate()+(w-1)*7-dow+1);
   const end=new Date(start); end.setDate(start.getDate()+6);
   return `${start.getMonth()+1}/${start.getDate()} ~ ${end.getMonth()+1}/${end.getDate()}`;
-}
-// 주의 시작일(월요일) 반환
-function getWeekStartDate(weekKey) {
-  const [year,wStr] = weekKey.split('-W'); const w=parseInt(wStr);
-  const jan1=new Date(parseInt(year),0,1); const dow=jan1.getDay()||7;
-  const start=new Date(jan1); start.setDate(jan1.getDate()+(w-1)*7-dow+1);
-  return start;
-}
-// 해당 월 기준 몇 번째 주인지 (1~5)
-function getWeekOfMonth(weekKey) {
-  const start = getWeekStartDate(weekKey);
-  const end = new Date(start); end.setDate(start.getDate()+6);
-  // 날수가 더 많이 속한 달 기준 대표 날짜
-  const rep = start.getDate() <= 3 ? end : start;
-  const firstOfMonth = new Date(rep.getFullYear(), rep.getMonth(), 1);
-  const fdow = firstOfMonth.getDay() || 7; // 1=월 ~ 7=일
-  const firstMonday = new Date(firstOfMonth);
-  firstMonday.setDate(firstOfMonth.getDate() - fdow + 1);
-  return Math.floor((start - firstMonday) / (7*86400000)) + 1;
 }
 function getGroupKey(dateStr) {
   if (granularity==='month') return dateStr.slice(0,7);
@@ -1237,13 +1222,7 @@ function getGroupKey(dateStr) {
 }
 function getGroupLabel(key) {
   if (granularity==='month') { const [y,m]=key.split('-'); return `${y}년 ${parseInt(m)}월`; }
-  if (granularity==='week') {
-    const start = getWeekStartDate(key);
-    const end = new Date(start); end.setDate(start.getDate()+6);
-    const rep = start.getDate() <= 3 ? end : start;
-    const wom = getWeekOfMonth(key);
-    return `${rep.getFullYear()}년 ${rep.getMonth()+1}월 ${wom}주`;
-  }
+  if (granularity==='week')  { const wn=parseInt(key.split('-W')[1]); return `${key.split('-W')[0]}년 ${wn}주차`; }
   return key;
 }
 function getDatesForGroup(key) {
@@ -1372,36 +1351,18 @@ function renderCalendar() {
 
   } else if (granularity==='week') {
     title.textContent = `${calViewYear}년 ${calViewMonth+1}월`;
-    // 해당 월에 하루라도 걸치는 모든 ISO 주 (데이터 유무 무관)
-    const mStart = new Date(calViewYear, calViewMonth, 1);
-    const mEnd   = new Date(calViewYear, calViewMonth+1, 0);
-    const allWeekKeys = [...new Set(dateKeys.map(k=>getISOWeek(k)))].sort();
-    // 데이터 있는 주 집합
-    const dataWeeks = new Set(dateKeys.map(k=>getISOWeek(k)));
-    // 월에 걸치는 주 목록 (데이터 없어도 표시, 단 데이터 있는 주가 하나라도 있는 월만)
-    // 월의 모든 날에 해당하는 주 key 생성
-    const relevant = [];
-    const seen = new Set();
-    for (let d=new Date(mStart); d<=mEnd; d.setDate(d.getDate()+1)) {
-      const wk = getISOWeek(d.toISOString().slice(0,10));
-      if (!seen.has(wk)) { seen.add(wk); relevant.push(wk); }
-    }
-    if (!relevant.length) {
+    const weeksInMonth = [...groups].filter(g=>g.startsWith(calViewYear+'-W')).sort();
+    if (!weeksInMonth.length) {
       body.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:1rem">데이터 없음</div>';
       return;
     }
-    body.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px">' + relevant.map(w=>{
-      const start = getWeekStartDate(w);
-      const end = new Date(start); end.setDate(start.getDate()+6);
-      const wom = getWeekOfMonth(w);
-      const rangeStr = `${start.getMonth()+1}/${start.getDate()} ~ ${end.getMonth()+1}/${end.getDate()}`;
-      const hasData = dataWeeks.has(w);
+    body.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px">' + weeksInMonth.map(w=>{
+      const wn = parseInt(w.split('-W')[1]);
+      const range = getWeekRange(w);
       const isActive = activeDate===w;
-      return `<div class="cal-cell ${isActive?'active':''} ${hasData?'has-data':'no-data'}"
-        style="text-align:left;padding:7px 12px" onclick="${hasData?`pickDate('${w}')`:''}">
-        <strong>${wom}주</strong>
-        <span style="font-size:10px;opacity:.7;margin-left:6px">${rangeStr}</span>
-        ${!hasData?'<span style="font-size:9px;color:var(--text3);margin-left:4px">(데이터없음)</span>':''}
+      return `<div class="cal-cell has-data ${isActive?'active':''}" style="text-align:left;padding:6px 10px"
+        onclick="pickDate('${w}')">
+        <strong>${wn}주차</strong> <span style="font-size:10px;opacity:.7">${range}</span>
       </div>`;
     }).join('') + '</div>';
 
@@ -2294,76 +2255,178 @@ function renderCompare() {
 }
 
 // ── PEOPLE ─────────────────────────────────────────────────
+// 직원 목록 전역 상태
+let _peopleListData = [];
+let _selectedPerson = null;
+
 function renderPeople(data) {
-  // 모든 직원을 TEAM_MAP에서 가져와 고정 (데이터 없어도 항상 표시)
-  const allMembers = [];
-  Object.entries(TEAM_MAP).forEach(([team, info]) => {
-    info.members.forEach(m => allMembers.push({ name: m, team, color: info.color }));
-  });
-
+  _peopleListData = data;
   const pm = {};
-  allMembers.forEach(({ name }) => { pm[name] = 0; });
   data.forEach(d => { pm[d.Name] = (pm[d.Name] || 0) + d.Hours; });
+  const allNames = [...new Set([
+    ...Object.entries(TEAM_MAP).flatMap(([,info]) => info.members),
+    ...Object.keys(pm)
+  ])];
+  window._peopleAll = allNames.map(name => ({
+    name, hours: pm[name] || 0, team: getTeam(name)
+  })).sort((a,b) => b.hours - a.hours);
 
-  const ps = Object.entries(pm).sort((a, b) => b[1] - a[1]);
-  const maxH = Math.max(...ps.map(([,h]) => h), 1);
+  document.getElementById('people-count').textContent = `${Object.keys(pm).length}명`;
+  filterPeopleList();
 
-  if (peopleViewMode === 'card') {
-    document.getElementById('people-grid').innerHTML = ps.map(([name, hours]) => {
-      const memberInfo = allMembers.find(m => m.name === name);
-      const color = memberInfo ? memberInfo.color : COLORS[0];
-      const parts = name.split(', ');
-      const initials = parts.length > 1 ? (parts[1][0] + parts[0][0]).toUpperCase() : name.slice(0,2).toUpperCase();
-      const pct = Math.round(hours / maxH * 100);
-      const billableH = data.filter(d => d.Name === name && d.isBillable).reduce((s, d) => s + d.Hours, 0);
-      const billPct = hours > 0 ? Math.round(billableH / hours * 100) : 0;
-      const noData = hours === 0;
-      return `<div class="person-card" onclick="${noData ? '' : `openPersonModal('${name.replace(/'/g, "\'")}')`}" style="opacity:${noData ? 0.45 : 1};${noData ? 'cursor:default' : ''}">
-        <div class="person-avatar" style="background:${noData ? '#d1d5db' : color}">${initials}</div>
-        <div class="person-name">${name}</div>
-        <div class="person-hours" style="color:${noData ? 'var(--text3)' : 'var(--text)'}">${noData ? '—' : hours.toFixed(1) + 'h'}</div>
-        <div class="person-sub" style="color:${noData ? 'var(--text3)' : ''}">${noData ? '기록 없음' : '청구 가능 ' + billPct + '%'}</div>
-        <div class="person-team" style="color:${memberInfo ? color : 'transparent'}">${memberInfo ? memberInfo.team : '&nbsp;'}</div>
-        <div class="person-bar"><div class="person-bar-fill" style="width:${pct}%;background:${noData ? '#e5e7eb' : color}"></div></div>
-      </div>`;
-    }).join('');
-  } else {
-    const psFiltered = ps.filter(([,h]) => h > 0);
-    const h = Math.max(340, psFiltered.length * 36 + 70);
-    document.getElementById('people-wrap').style.height = h + 'px';
-    charts.people = new Chart(document.getElementById('peopleChart'), {
-      type: 'bar',
-      data: {
-        labels: psFiltered.map(([k]) => k),
-        datasets: [{ data: psFiltered.map(([, v]) => +v.toFixed(1)),
-          backgroundColor: psFiltered.map(([n]) => {
-            const m = allMembers.find(x => x.name === n);
-            return m ? m.color + 'cc' : COLORS[0] + 'cc';
-          }), borderRadius: 4, borderWidth: 0 }]
-      },
-      options: {
-        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(1)}h` } } },
-        scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v + 'h' } },
-          y: { grid: { display: false }, ticks: { font: { size: 12 } } }
-        }
-      }
-    });
+  const withData = window._peopleAll.filter(p => p.hours > 0);
+  if (_selectedPerson && pm[_selectedPerson] !== undefined) {
+    openPersonDetail(_selectedPerson);
+  } else if (withData.length > 0) {
+    openPersonDetail(withData[0].name);
   }
 }
 
-function setPeopleView(mode) {
-  peopleViewMode = mode;
-  document.getElementById('people-card-view').style.display = mode === 'card' ? 'block' : 'none';
-  document.getElementById('people-chart-view').style.display = mode === 'chart' ? 'block' : 'none';
-  document.getElementById('people-view-card').style.borderColor = mode === 'card' ? 'var(--blue)' : '';
-  document.getElementById('people-view-card').style.color = mode === 'card' ? 'var(--blue)' : '';
-  document.getElementById('people-view-chart').style.borderColor = mode === 'chart' ? 'var(--blue)' : '';
-  document.getElementById('people-view-chart').style.color = mode === 'chart' ? 'var(--blue)' : '';
-  if (charts.people) { try { charts.people.destroy(); } catch(e){} delete charts.people; }
-  renderPeople(filteredData);
+function filterPeopleList() {
+  const q = (document.getElementById('people-search')?.value || '').toLowerCase();
+  const list = (window._peopleAll || []).filter(p => p.name.toLowerCase().includes(q));
+  document.getElementById('people-list').innerHTML = list.map(p => {
+    const noData = p.hours === 0;
+    const isActive = p.name === _selectedPerson;
+    const pts = p.name.split(', ');
+    const initials = pts.length>1?(pts[1][0]+pts[0][0]).toUpperCase():p.name.slice(0,2).toUpperCase();
+    const bg = isActive ? 'var(--blue)' : 'transparent';
+    const nameColor = isActive ? 'white' : 'var(--text)';
+    const teamColor = isActive ? 'rgba(255,255,255,.75)' : p.team.color;
+    const hColor = isActive ? 'white' : 'var(--text)';
+    const clickFn = noData ? '' : `openPersonDetail('${p.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')`;
+    return `<div onclick="${clickFn}"
+      style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:${noData?'default':'pointer'};
+             opacity:${noData?0.4:1};border-radius:6px;margin:1px 4px;background:${bg};transition:background .12s"
+      onmouseenter="if('${isActive}'!=='true') this.style.background='var(--surface2)'"
+      onmouseleave="this.style.background='${bg}'">
+      <div style="width:32px;height:32px;border-radius:50%;background:${isActive?'rgba(255,255,255,.25)':p.team.color};
+                  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:${nameColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+        <div style="font-size:10px;color:${teamColor};font-weight:500">${p.team.team}</div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:${hColor};flex-shrink:0">${noData?'—':p.hours.toFixed(1)+'h'}</div>
+    </div>`;
+  }).join('');
 }
+
+function openPersonDetail(name) {
+  _selectedPerson = name;
+  filterPeopleList();
+
+  const data = _peopleListData.filter(d => d.Name === name);
+  const useData = data.length ? data : allData.filter(d => d.Name === name);
+  const panel = document.getElementById('people-detail-panel');
+
+  if (!useData.length) {
+    panel.innerHTML = '<div class="card" style="text-align:center;padding:3rem;color:var(--text3)">데이터 없음</div>';
+    return;
+  }
+
+  const totalH = useData.reduce((s,d)=>s+d.Hours,0);
+  const team = getTeam(name);
+  const pts2 = name.split(', ');
+  const initials2 = pts2.length>1?(pts2[1][0]+pts2[0][0]).toUpperCase():name.slice(0,2).toUpperCase();
+
+  // 카테고리별 집계
+  const catMap = {};
+  useData.forEach(d => {
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const code = cat?cat.code:'ETC';
+    const label = cat?cat.code:'기타';
+    const color = cat?cat.color:'#9CA3AF';
+    const bg = cat?cat.bg:'#f3f4f6';
+    if (!catMap[code]) catMap[code] = {code,label,color,bg,h:0};
+    catMap[code].h += d.Hours;
+  });
+  const catEntries = Object.values(catMap).sort((a,b)=>b.h-a.h);
+
+  // 태스크별 요일 집계
+  const taskMap = {};
+  const DAY_KEYS = ['월','화','수','목','금','토','일'];
+  useData.forEach(d => {
+    const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const code = cat?cat.code:'ETC';
+    const color = cat?cat.color:'#9CA3AF';
+    if (!taskMap[task]) taskMap[task] = {task,code,color,total:0,days:[0,0,0,0,0,0,0]};
+    taskMap[task].total += d.Hours;
+    const dow = new Date(d.dateStr).getDay();
+    taskMap[task].days[dow===0?6:dow-1] += d.Hours;
+  });
+  const taskRows = Object.values(taskMap).sort((a,b)=>b.total-a.total);
+  const dayTotals = [0,0,0,0,0,0,0];
+  taskRows.forEach(r => r.days.forEach((h,i)=>{ dayTotals[i]+=h; }));
+
+  const dates = [...new Set(useData.map(d=>d.dateStr))].sort();
+  const dateRange = dates.length?`${dates[0]} ~ ${dates[dates.length-1]}`:'';
+
+  const catCards = catEntries.map(c => {
+    const pct = totalH>0?Math.round(c.h/totalH*100):0;
+    return `<div style="background:${c.bg};border:1px solid ${c.color}44;border-radius:var(--radius);padding:.875rem 1rem">
+      <div style="font-size:11px;color:${c.color};font-weight:700;margin-bottom:.25rem">${c.label}</div>
+      <div style="font-size:20px;font-weight:800;color:${c.color}">${pct}%</div>
+      <div style="font-size:11px;color:${c.color};opacity:.8">${c.h.toFixed(1)}h</div>
+      <div style="height:3px;background:${c.color}22;border-radius:99px;margin-top:.5rem;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${c.color};border-radius:99px"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const dayHeaders = DAY_KEYS.map(d=>`<th style="text-align:center;padding:6px 6px;font-size:11px;color:var(--text2);font-weight:600;min-width:38px">${d}</th>`).join('');
+  const taskRowsHtml = taskRows.map((r,i) => {
+    const cells = r.days.map(h=>`<td style="text-align:center;padding:5px 6px;color:${h>0?'var(--text)':'var(--text3)'}">${h>0?h.toFixed(1):'—'}</td>`).join('');
+    return `<tr style="border-bottom:1px solid var(--border2);background:${i%2===0?'transparent':'var(--surface2)'}">
+      <td style="padding:5px 8px"><span style="font-size:10px;font-weight:700;color:${r.color};background:${r.color}18;padding:2px 7px;border-radius:99px">${r.code}</span></td>
+      <td style="padding:5px 8px;color:var(--text);font-weight:500;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.task}">${r.task.length>28?r.task.slice(0,28)+'…':r.task}</td>
+      ${cells}
+      <td style="text-align:right;padding:5px 8px;font-weight:700;color:var(--text)">${r.total.toFixed(1)}h</td>
+    </tr>`;
+  }).join('');
+  const footCells = dayTotals.map(h=>`<td style="text-align:center;padding:6px 6px;font-weight:700;color:var(--text)">${h>0?h.toFixed(1):'—'}</td>`).join('');
+
+  panel.innerHTML = `
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem">
+      <div style="width:48px;height:48px;border-radius:50%;background:${team.color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:white;flex-shrink:0">${initials2}</div>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--text)">${name}</div>
+        <div style="font-size:12px;color:${team.color};font-weight:600;margin-top:2px">${team.team}</div>
+        ${dateRange?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${dateRange}</div>`:''}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:.875rem 1rem">
+        <div style="font-size:11px;color:#166534;font-weight:600;margin-bottom:.25rem">기간 합계</div>
+        <div style="font-size:24px;font-weight:800;color:#15803d">${totalH.toFixed(1)}h</div>
+        <div style="height:3px;background:#dcfce7;border-radius:99px;margin-top:.5rem"><div style="height:100%;width:100%;background:#16a34a;border-radius:99px"></div></div>
+      </div>
+      ${catCards}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:.875rem">요일별 상세</div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="border-bottom:2px solid var(--border)">
+          <th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600;width:70px">대분류</th>
+          <th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600">하위코드</th>
+          ${dayHeaders}
+          <th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600;min-width:52px">합계</th>
+        </tr></thead>
+        <tbody>${taskRowsHtml}</tbody>
+        <tfoot><tr style="border-top:2px solid var(--border);background:var(--surface2)">
+          <td colspan="2" style="padding:6px 8px;font-weight:700;font-size:12px">합계</td>
+          ${footCells}
+          <td style="text-align:right;padding:6px 8px;font-weight:800;color:var(--text)">${totalH.toFixed(1)}h</td>
+        </tr></tfoot>
+      </table>
+    </div>
+  </div>`;
+}
+
+
 
 // ── PERSON MODAL ───────────────────────────────────────────
 function openPersonModal(name) {
