@@ -1211,6 +1211,25 @@ function getWeekRange(weekKey) {
   const end=new Date(start); end.setDate(start.getDate()+6);
   return `${start.getMonth()+1}/${start.getDate()} ~ ${end.getMonth()+1}/${end.getDate()}`;
 }
+// 주의 시작일(월요일) 반환
+function getWeekStartDate(weekKey) {
+  const [year,wStr] = weekKey.split('-W'); const w=parseInt(wStr);
+  const jan1=new Date(parseInt(year),0,1); const dow=jan1.getDay()||7;
+  const start=new Date(jan1); start.setDate(jan1.getDate()+(w-1)*7-dow+1);
+  return start;
+}
+// 해당 월 기준 몇 번째 주인지 (1~5)
+function getWeekOfMonth(weekKey) {
+  const start = getWeekStartDate(weekKey);
+  const end = new Date(start); end.setDate(start.getDate()+6);
+  // 날수가 더 많이 속한 달 기준 대표 날짜
+  const rep = start.getDate() <= 3 ? end : start;
+  const firstOfMonth = new Date(rep.getFullYear(), rep.getMonth(), 1);
+  const fdow = firstOfMonth.getDay() || 7; // 1=월 ~ 7=일
+  const firstMonday = new Date(firstOfMonth);
+  firstMonday.setDate(firstOfMonth.getDate() - fdow + 1);
+  return Math.floor((start - firstMonday) / (7*86400000)) + 1;
+}
 function getGroupKey(dateStr) {
   if (granularity==='month') return dateStr.slice(0,7);
   if (granularity==='week')  return getISOWeek(dateStr);
@@ -1218,7 +1237,13 @@ function getGroupKey(dateStr) {
 }
 function getGroupLabel(key) {
   if (granularity==='month') { const [y,m]=key.split('-'); return `${y}년 ${parseInt(m)}월`; }
-  if (granularity==='week')  { const wn=parseInt(key.split('-W')[1]); return `${key.split('-W')[0]}년 ${wn}주차`; }
+  if (granularity==='week') {
+    const start = getWeekStartDate(key);
+    const end = new Date(start); end.setDate(start.getDate()+6);
+    const rep = start.getDate() <= 3 ? end : start;
+    const wom = getWeekOfMonth(key);
+    return `${rep.getFullYear()}년 ${rep.getMonth()+1}월 ${wom}주`;
+  }
   return key;
 }
 function getDatesForGroup(key) {
@@ -1346,26 +1371,37 @@ function renderCalendar() {
     }).join('') + '</div>';
 
   } else if (granularity==='week') {
-    // Show weeks of the month
     title.textContent = `${calViewYear}년 ${calViewMonth+1}월`;
-    // Get all weeks in this month
-    const weeksInMonth = [...groups].filter(g=>g.startsWith(calViewYear+'-W')).sort();
-    // Filter to weeks that overlap with this month
-    const relevant = weeksInMonth.filter(w=>{
-      const range = getWeekRange(w);
-      return true; // show all weeks of the year for now
-    });
+    // 해당 월에 하루라도 걸치는 모든 ISO 주 (데이터 유무 무관)
+    const mStart = new Date(calViewYear, calViewMonth, 1);
+    const mEnd   = new Date(calViewYear, calViewMonth+1, 0);
+    const allWeekKeys = [...new Set(dateKeys.map(k=>getISOWeek(k)))].sort();
+    // 데이터 있는 주 집합
+    const dataWeeks = new Set(dateKeys.map(k=>getISOWeek(k)));
+    // 월에 걸치는 주 목록 (데이터 없어도 표시, 단 데이터 있는 주가 하나라도 있는 월만)
+    // 월의 모든 날에 해당하는 주 key 생성
+    const relevant = [];
+    const seen = new Set();
+    for (let d=new Date(mStart); d<=mEnd; d.setDate(d.getDate()+1)) {
+      const wk = getISOWeek(d.toISOString().slice(0,10));
+      if (!seen.has(wk)) { seen.add(wk); relevant.push(wk); }
+    }
     if (!relevant.length) {
       body.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:1rem">데이터 없음</div>';
       return;
     }
     body.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px">' + relevant.map(w=>{
-      const wn = parseInt(w.split('-W')[1]);
-      const range = getWeekRange(w);
+      const start = getWeekStartDate(w);
+      const end = new Date(start); end.setDate(start.getDate()+6);
+      const wom = getWeekOfMonth(w);
+      const rangeStr = `${start.getMonth()+1}/${start.getDate()} ~ ${end.getMonth()+1}/${end.getDate()}`;
+      const hasData = dataWeeks.has(w);
       const isActive = activeDate===w;
-      return `<div class="cal-cell has-data ${isActive?'active':''}" style="text-align:left;padding:6px 10px"
-        onclick="pickDate('${w}')">
-        <strong>${wn}주차</strong> <span style="font-size:10px;opacity:.7">${range}</span>
+      return `<div class="cal-cell ${isActive?'active':''} ${hasData?'has-data':'no-data'}"
+        style="text-align:left;padding:7px 12px" onclick="${hasData?`pickDate('${w}')`:''}">
+        <strong>${wom}주</strong>
+        <span style="font-size:10px;opacity:.7;margin-left:6px">${rangeStr}</span>
+        ${!hasData?'<span style="font-size:9px;color:var(--text3);margin-left:4px">(데이터없음)</span>':''}
       </div>`;
     }).join('') + '</div>';
 
