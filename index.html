@@ -338,13 +338,30 @@
 
   /* ── TOP TOOLBAR ── */
   .top-toolbar {
-    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    display: flex; flex-direction: column; gap: 0;
     background: var(--surface); border: 1px solid var(--border2);
-    border-radius: var(--radius); padding: .625rem 1rem;
-    margin-bottom: 1.25rem; position: sticky; top: 56px; z-index: 90;
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
     box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    overflow: visible;
+    position: relative;
   }
-  .main-tabs { display: flex; gap: 2px; flex: 1; flex-wrap: wrap; }
+  .toolbar-row1 {
+    display: flex; align-items: center; gap: 2px; flex-wrap: wrap;
+    padding: .5rem .75rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border2);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .toolbar-row2 {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: .5rem .75rem;
+    background: var(--surface);
+    border-radius: 0 0 var(--radius) var(--radius);
+    position: relative; z-index: 1;
+    overflow: visible;
+  }
+  .main-tabs { display: flex; gap: 2px; flex-wrap: wrap; }
   .main-tab {
     padding: 6px 16px; border-radius: var(--radius-sm); border: none;
     background: transparent; color: var(--text2); font-size: 13px;
@@ -402,10 +419,14 @@
   .toolbar-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
   /* ── CALENDAR POPUP ── */
+  .date-label-wrap {
+    position: relative;
+  }
   .calendar-popup {
-    position: absolute; z-index: 200;
+    position: absolute; z-index: 9999;
+    top: calc(100% + 6px); left: 50%; transform: translateX(-50%);
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); box-shadow: 0 8px 30px rgba(0,0,0,.15);
+    border-radius: var(--radius); box-shadow: 0 8px 30px rgba(0,0,0,.2);
     padding: 1rem; min-width: 260px;
   }
   .cal-header {
@@ -580,45 +601,50 @@
 
     <!-- TOP TOOLBAR -->
     <div class="top-toolbar">
-      <!-- Main view tabs -->
-      <div class="main-tabs" id="main-tabs">
-        <button class="main-tab active" onclick="switchMainView('overview', this)">전체 현황</button>
-        <button class="main-tab" onclick="switchMainView('people', this)">직원 현황</button>
-        <button class="main-tab" onclick="switchMainView('project', this)">프로젝트 현황</button>
-        <button class="main-tab" onclick="switchMainView('teamview', this)">팀 현황</button>
-        <button class="main-tab" onclick="switchMainView('detail', this)">상세 내역</button>
-        <button class="main-tab" onclick="switchMainView('taskmap', this)">태스크 분류</button>
-      </div>
-      <!-- Date navigator -->
-      <div class="date-nav">
-        <div class="gran-pills">
-          <button class="gran-pill active" onclick="setGranularity('month', this)">월별</button>
-          <button class="gran-pill" onclick="setGranularity('week', this)">주별</button>
-          <button class="gran-pill" onclick="setGranularity('day', this)">기간</button>
-        </div>
-        <div class="date-nav-ctrl">
-          <button class="nav-arrow" onclick="navDate(-1)">‹</button>
-          <button class="date-label-btn" onclick="toggleCalendar()" id="date-label-btn">전체</button>
-          <button class="nav-arrow" onclick="navDate(1)">›</button>
-          <button class="nav-today" onclick="navToday()">현재</button>
-          <button class="nav-reset" onclick="navReset()" title="전체 보기">↺</button>
+      <!-- Row 1: Main view tabs -->
+      <div class="toolbar-row1">
+        <div class="main-tabs" id="main-tabs">
+          <button class="main-tab active" onclick="switchMainView('overview', this)">전체 현황</button>
+          <button class="main-tab" onclick="switchMainView('billable', this)">Billable 현황</button>
+          <button class="main-tab" onclick="switchMainView('people', this)">직원 현황</button>
+          <button class="main-tab" onclick="switchMainView('project', this)">프로젝트 현황</button>
+          <button class="main-tab" onclick="switchMainView('teamview', this)">팀 현황</button>
+          <button class="main-tab" onclick="switchMainView('detail', this)">상세 내역</button>
+          <button class="main-tab" onclick="switchMainView('taskmap', this)">태스크 분류</button>
         </div>
       </div>
-      <!-- Right actions -->
-      <div class="toolbar-actions">
-        <button class="btn-sm" onclick="printReport()">🖨 출력</button>
-        <button class="btn-sm" onclick="exportExcel()">⬇ CSV</button>
+      <!-- Row 2: Date navigator + actions -->
+      <div class="toolbar-row2">
+        <div class="date-nav">
+          <div class="gran-pills">
+            <button class="gran-pill active" onclick="setGranularity('month', this)">월별</button>
+            <button class="gran-pill" onclick="setGranularity('week', this)">주별</button>
+            <button class="gran-pill" onclick="setGranularity('day', this)">기간</button>
+          </div>
+          <div class="date-nav-ctrl">
+            <button class="nav-arrow" onclick="navDate(-1)">‹</button>
+            <div class="date-label-wrap">
+              <button class="date-label-btn" onclick="toggleCalendar()" id="date-label-btn">전체</button>
+              <div id="calendar-popup" class="calendar-popup" style="display:none">
+                <div class="cal-header">
+                  <button class="cal-nav" onclick="calNav(-1)">‹</button>
+                  <span id="cal-title"></span>
+                  <button class="cal-nav" onclick="calNav(1)">›</button>
+                </div>
+                <div id="cal-body"></div>
+              </div>
+            </div>
+            <button class="nav-arrow" onclick="navDate(1)">›</button>
+            <button class="nav-today" onclick="navToday()">현재</button>
+            <button class="nav-reset" onclick="navReset()" title="전체 보기">↺</button>
+          </div>
+        </div>
+        <!-- Right actions -->
+        <div class="toolbar-actions">
+          <button class="btn-sm" onclick="printReport()">🖨 출력</button>
+          <button class="btn-sm" onclick="exportExcel()">⬇ CSV</button>
+        </div>
       </div>
-    </div>
-
-    <!-- Calendar popup -->
-    <div id="calendar-popup" class="calendar-popup" style="display:none">
-      <div class="cal-header">
-        <button class="cal-nav" onclick="calNav(-1)">‹</button>
-        <span id="cal-title"></span>
-        <button class="cal-nav" onclick="calNav(1)">›</button>
-      </div>
-      <div id="cal-body"></div>
     </div>
 
     <!-- FILTER PANEL -->
@@ -753,6 +779,11 @@
         </div>
         <div class="pagination" id="pagination"></div>
       </div>
+    </div>
+
+    <!-- Billable 현황 -->
+    <div id="view-billable" style="display:none">
+      <div id="billable-content"></div>
     </div>
 
     <!-- Task Map -->
@@ -1010,7 +1041,9 @@ function loadFile(file) {
           obj.Hours = parseFloat(obj.Hours) || 0;
           const d = obj.Date;
           obj.dateStr = d instanceof Date ? d.toISOString().slice(0, 10) : String(d).slice(0, 10);
-          obj.isBillable = !String(obj.Task).toLowerCase().includes('not billable') && !String(obj.Task).toLowerCase().includes('not bill');
+          const taskLower = String(obj.Task).toLowerCase();
+          const NON_BILLABLE_KEYWORDS = ['not billable','not bill','leave','public holiday','sick time','vacation','personal day','bereavement','jury duty','time off to vote','other (unpaid)'];
+          obj.isBillable = !NON_BILLABLE_KEYWORDS.some(k => taskLower.includes(k));
           obj.Name = normalizeName(obj.Name);
           obj.source = file.name;
           return obj;
@@ -1212,9 +1245,11 @@ function renderDateFilter() {
 
 function setGranularity(g, btn) {
   granularity = g;
-  activeDate = 'all';
   document.querySelectorAll('.gran-pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  // 그래뉼러리티 변경 시 가장 최근 그룹으로 자동 이동
+  const groups = getAllGroups().filter(gr => gr !== 'all');
+  activeDate = groups.length > 0 ? groups[groups.length - 1] : 'all';
   updateFilterOptions(); renderDateFilter(); applyFilters();
   renderCalendar();
 }
@@ -1260,17 +1295,10 @@ let calViewMonth = new Date().getMonth(); // 0-indexed
 
 function toggleCalendar() {
   const popup = document.getElementById('calendar-popup');
-  if (popup.style.display==='none') {
-    // Position near button
-    const btn = document.getElementById('date-label-btn');
-    const rect = btn.getBoundingClientRect();
-    const pageRect = document.querySelector('.page').getBoundingClientRect();
-    popup.style.top = (rect.bottom - pageRect.top + window.scrollY + 6) + 'px';
-    popup.style.left = (rect.left - pageRect.left) + 'px';
+  if (popup.style.display === 'none') {
     popup.style.display = 'block';
     renderCalendar();
-    // Close on outside click
-    setTimeout(()=>document.addEventListener('click', closeCalOnOutside), 0);
+    setTimeout(() => document.addEventListener('click', closeCalOnOutside), 0);
   } else {
     popup.style.display = 'none';
     document.removeEventListener('click', closeCalOnOutside);
@@ -1536,7 +1564,7 @@ function switchMainView(view, btn) {
   activeView = view;
   document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  ['overview','people','project','teamview','detail','taskmap'].forEach(v=>{
+  ['overview','billable','people','project','teamview','detail','taskmap'].forEach(v=>{
     const el = document.getElementById('view-'+v);
     if (el) el.style.display = v===view ? 'block' : 'none';
   });
@@ -1546,11 +1574,292 @@ function switchMainView(view, btn) {
 
 function renderActiveView() {
   if (activeView === 'overview') renderOverview(filteredData);
+  if (activeView === 'billable') renderBillableView(filteredData);
   if (activeView === 'people') renderPeople(filteredData);
   if (activeView === 'project') renderProjectView(filteredData);
   if (activeView === 'teamview') renderTeamView(filteredData);
   if (activeView === 'detail') renderDetail(filteredData);
   if (activeView === 'taskmap') renderTaskMap(filteredData);
+}
+
+// ── BILLABLE 현황 VIEW ─────────────────────────────────────
+// 정렬 상태 (뷰 간 유지)
+let _billSortKey  = 'bill';   // 'bill' | 'pct' | 'total'
+let _billSortAsc  = false;    // false = 내림차순(기본)
+let _heatSortKey  = 'bill';
+let _heatSortAsc  = false;
+let _billRawData  = null;     // 재정렬 시 원본 데이터 재사용
+
+function setBillSort(section, key) {
+  if (section === 'rank') {
+    if (_billSortKey === key) _billSortAsc = !_billSortAsc;
+    else { _billSortKey = key; _billSortAsc = false; }
+  } else {
+    if (_heatSortKey === key) _heatSortAsc = !_heatSortAsc;
+    else { _heatSortKey = key; _heatSortAsc = false; }
+  }
+  renderBillableView(_billRawData);
+}
+
+function renderBillableView(data) {
+  _billRawData = data;
+  const el = document.getElementById('billable-content');
+  if (!data || !data.length) { el.innerHTML = '<div class="empty">데이터를 업로드하세요.</div>'; return; }
+
+  // ── 1. 직원별 집계 ──
+  const personMap = {};
+  data.forEach(d => {
+    if (!personMap[d.Name]) personMap[d.Name] = { total:0, bill:0, projects:{} };
+    personMap[d.Name].total += d.Hours;
+    if (d.isBillable) personMap[d.Name].bill += d.Hours;
+    const proj = d['Project Name'] || '—';
+    if (!personMap[d.Name].projects[proj]) personMap[d.Name].projects[proj] = { total:0, bill:0 };
+    personMap[d.Name].projects[proj].total += d.Hours;
+    if (d.isBillable) personMap[d.Name].projects[proj].bill += d.Hours;
+  });
+
+  // ── 2. 프로젝트 목록 (billable 시간 기준, 상위 15개) ──
+  const projTotals = {};
+  data.forEach(d => {
+    const proj = d['Project Name'] || '—';
+    if (!projTotals[proj]) projTotals[proj] = { total:0, bill:0 };
+    projTotals[proj].total += d.Hours;
+    if (d.isBillable) projTotals[proj].bill += d.Hours;
+  });
+  const projects = Object.entries(projTotals)
+    .sort((a,b) => b[1].bill - a[1].bill)
+    .slice(0, 15).map(([name]) => name);
+
+  // ── 3. 정렬 헬퍼 ──
+  function sortPersons(key, asc) {
+    return Object.entries(personMap).sort((a,b) => {
+      const va = a[1], vb = b[1];
+      let diff;
+      if (key === 'pct')   diff = (va.total>0?va.bill/va.total:0) - (vb.total>0?vb.bill/vb.total:0);
+      else if (key==='bill') diff = va.bill - vb.bill;
+      else                   diff = va.total - vb.total;
+      return asc ? diff : -diff;
+    }).map(([name]) => name);
+  }
+
+  const personsHeat = sortPersons(_heatSortKey, _heatSortAsc).filter(p => personMap[p].bill > 0);
+  const personsRank = sortPersons(_billSortKey, _billSortAsc);
+
+  // ── 4. 히트맵 최대값 ──
+  let maxBill = 0;
+  personsHeat.forEach(p => projects.forEach(proj => {
+    const v = personMap[p].projects[proj]?.bill || 0;
+    if (v > maxBill) maxBill = v;
+  }));
+
+  // ── 5. 색상 함수 ──
+  function billColor(bill, total) {
+    if (!total) return { bg:'#f3f4f6', text:'#9ca3af' };
+    const pct = bill / total;
+    if (bill === 0) return { bg:'#fef2f2', text:'#ef4444' };
+    if (pct >= 0.9) return { bg:'#dcfce7', text:'#15803d' };
+    if (pct >= 0.7) return { bg:'#d1fae5', text:'#047857' };
+    if (pct >= 0.5) return { bg:'#fef9c3', text:'#a16207' };
+    return { bg:'#ffedd5', text:'#c2410c' };
+  }
+  function heatBg(bill) {
+    if (!bill || !maxBill) return 'transparent';
+    const i = bill / maxBill;
+    return `rgba(${Math.round(50+(1-i)*180)},${Math.round(102+(1-i)*120)},${Math.round(173+(1-i)*60)},${0.12+i*0.55})`;
+  }
+
+  // ── 6. 요약 카드 ──
+  const totalAll = data.reduce((s,d)=>s+d.Hours,0);
+  const billAll  = data.filter(d=>d.isBillable).reduce((s,d)=>s+d.Hours,0);
+  const billPctAll = totalAll > 0 ? (billAll/totalAll*100).toFixed(1) : 0;
+
+  // 상위 5 직원 (billable 시간 기준)
+  const top5bill = Object.entries(personMap).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
+  // 상위 5 직원 (non-billable 기준)
+  const top5nonbill = Object.entries(personMap).sort((a,b)=>(b[1].total-b[1].bill)-(a[1].total-a[1].bill)).slice(0,5);
+  // 상위 5 프로젝트 (billable 시간 기준)
+  const top5proj = Object.entries(projTotals).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
+  // Billable 90%+ 직원 목록
+  const high90 = Object.entries(personMap).filter(([,v])=>v.total>0&&v.bill/v.total>=0.9).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
+
+  function tooltipRows(items, labelFn, valFn, color) {
+    return items.map(item => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.1);gap:12px">
+        <span style="font-size:11px;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">${labelFn(item)}</span>
+        <span style="font-size:11px;font-weight:700;color:${color};white-space:nowrap;flex-shrink:0">${valFn(item)}</span>
+      </div>`).join('');
+  }
+
+  function cardWithTooltip(borderColor, label, value, sub, tooltipTitle, tooltipContent) {
+    return `
+    <div class="card summary-card-tip" style="border-top:3px solid ${borderColor};position:relative;cursor:default">
+      <div class="metric-label">${label}</div>
+      <div class="metric-value" style="color:${borderColor}">${value}</div>
+      <div class="metric-sub">${sub}</div>
+      <div class="card-tooltip">
+        <div style="font-size:11px;font-weight:700;color:white;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2)">${tooltipTitle}</div>
+        ${tooltipContent}
+      </div>
+    </div>`;
+  }
+
+  const summaryCards = `
+  <style>
+    .summary-card-tip { overflow:visible !important; }
+    .card-tooltip {
+      display:none; position:absolute; top:calc(100% + 8px); left:0; z-index:200;
+      background:#1e293b; border-radius:10px; padding:12px 14px;
+      min-width:220px; box-shadow:0 8px 24px rgba(0,0,0,.25);
+      pointer-events:none;
+    }
+    .summary-card-tip:hover .card-tooltip { display:block; }
+    .card-tooltip::before {
+      content:''; position:absolute; top:-6px; left:20px;
+      width:12px; height:12px; background:#1e293b;
+      transform:rotate(45deg); border-radius:2px;
+    }
+  </style>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem">
+    ${cardWithTooltip('var(--green)','전체 Billable 시간',`${billAll.toFixed(1)}h`,`전체의 ${billPctAll}%`,
+      '🏆 Billable 상위 5명',
+      tooltipRows(top5bill, ([n])=>n, ([,v])=>`${v.bill.toFixed(1)}h`, '#4ade80')
+    )}
+    ${cardWithTooltip('var(--red)','Non-Billable 시간',`${(totalAll-billAll).toFixed(1)}h`,`전체의 ${(100-parseFloat(billPctAll)).toFixed(1)}%`,
+      '⚠️ Non-Billable 상위 5명',
+      tooltipRows(top5nonbill, ([n])=>n, ([,v])=>`${(v.total-v.bill).toFixed(1)}h`, '#f87171')
+    )}
+    ${cardWithTooltip('var(--blue)','참여 직원 수',`${Object.keys(personMap).length}명`,`프로젝트 ${projects.length}건`,
+      '📋 Billable 상위 5 프로젝트',
+      tooltipRows(top5proj, ([n])=>n.length>18?n.slice(0,17)+'…':n, ([,v])=>`${v.bill.toFixed(1)}h`, '#60a5fa')
+    )}
+    ${cardWithTooltip('var(--amber)','Billable 90%+ 직원',`${high90.length}명`,`전체 ${Object.keys(personMap).length}명 중`,
+      '⭐ Billable 90%+ 직원',
+      tooltipRows(high90, ([n])=>n, ([,v])=>`${(v.bill/v.total*100).toFixed(0)}%`, '#fbbf24')
+    )}
+  </div>`;
+
+  // ── 7. 정렬 버튼 헬퍼 ──
+  function sortBtn(section, key, label) {
+    const active = section==='rank' ? _billSortKey===key : _heatSortKey===key;
+    const asc    = section==='rank' ? _billSortAsc       : _heatSortAsc;
+    const arrow  = active ? (asc ? ' ↑' : ' ↓') : '';
+    const style  = active
+      ? 'background:var(--blue);color:white;border-color:var(--blue)'
+      : 'background:var(--surface);color:var(--text2);border-color:var(--border)';
+    return `<button onclick="setBillSort('${section}','${key}')" style="padding:4px 12px;border-radius:99px;border:1px solid;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;${style}">${label}${arrow}</button>`;
+  }
+
+  // ── 8. 히트맵 (프로젝트=행, 직원=열) ──
+  // 직원 컬럼 헤더
+  const personCols = personsHeat.map(p => {
+    const v = personMap[p];
+    const pct = v.total>0?(v.bill/v.total*100).toFixed(0):0;
+    const nameColor = parseInt(pct)>=70?'var(--green)':parseInt(pct)>=50?'var(--amber)':'var(--red)';
+    const short = p.includes(',') ? p.split(',')[1].trim().split(' ')[0] : p.split(' ')[0];
+    return `<th style="padding:4px 3px;font-size:10px;font-weight:600;color:var(--text2);text-align:center;min-width:70px;vertical-align:bottom">
+      <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;font-size:11px;color:var(--text)" title="${p}">${short}</div>
+      <div style="font-size:10px;font-weight:700;color:${nameColor};margin-top:2px">${pct}%</div>
+    </th>`;
+  }).join('');
+
+  // 프로젝트 행
+  const heatRows = projects.map(proj => {
+    const pv = projTotals[proj];
+    const projPct = pv.total>0?(pv.bill/pv.total*100).toFixed(0):0;
+    const projColor = parseInt(projPct)>=70?'var(--green)':parseInt(projPct)>=50?'var(--amber)':'var(--red)';
+    const short = proj.length > 22 ? proj.slice(0,21)+'…' : proj;
+    const cells = personsHeat.map(p => {
+      const cv = personMap[p].projects[proj];
+      if (!cv || cv.total===0) return `<td style="text-align:center;padding:3px;font-size:10px;color:var(--text3)">—</td>`;
+      const c = billColor(cv.bill, cv.total);
+      const pct = cv.total>0?(cv.bill/cv.total*100).toFixed(0):0;
+      return `<td style="text-align:center;padding:2px 3px" title="${p} · ${proj}&#10;Billable: ${cv.bill.toFixed(1)}h / 총: ${cv.total.toFixed(1)}h (${pct}%)">
+        <div style="background:${heatBg(cv.bill)};border-radius:5px;padding:3px 2px">
+          <div style="font-size:11px;font-weight:700;color:${c.text}">${cv.bill.toFixed(1)}h</div>
+          <div style="font-size:9px;color:${c.text};opacity:.8">${pct}%</div>
+        </div>
+      </td>`;
+    }).join('');
+    return `<tr>
+      <td style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;padding:4px 12px 4px 0;position:sticky;left:0;background:var(--surface);z-index:1;max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${proj}">${short}</td>
+      <td style="text-align:right;font-size:11px;font-weight:700;color:${projColor};padding:4px 10px;white-space:nowrap;position:sticky;left:180px;background:var(--surface);z-index:1;border-right:1px solid var(--border)">${projPct}%</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  const heatmap = `
+  <div class="card" style="margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+      <div class="card-title" style="margin-bottom:0">📋 × 👤 프로젝트 × 직원 Billable 히트맵</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3);font-weight:600">직원 정렬:</span>
+        ${sortBtn('heat','bill','Billable 시간')}
+        ${sortBtn('heat','pct','비율')}
+        ${sortBtn('heat','total','총 시간')}
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);margin-bottom:.75rem;flex-wrap:wrap">
+      <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#dcfce7;border-radius:2px;display:inline-block"></span>90%+</span>
+      <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#d1fae5;border-radius:2px;display:inline-block"></span>70%+</span>
+      <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#fef9c3;border-radius:2px;display:inline-block"></span>50%+</span>
+      <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#ffedd5;border-radius:2px;display:inline-block"></span>50% 미만</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="border-collapse:separate;border-spacing:2px;width:100%">
+        <thead><tr>
+          <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text2);padding:0 12px 8px 0;position:sticky;left:0;background:var(--surface);z-index:2;white-space:nowrap;min-width:180px">프로젝트</th>
+          <th style="font-size:11px;font-weight:600;color:var(--text2);padding:0 10px 8px;text-align:right;position:sticky;left:180px;background:var(--surface);z-index:2;white-space:nowrap;border-right:1px solid var(--border)">Bill%</th>
+          ${personCols}
+        </tr></thead>
+        <tbody>${heatRows}</tbody>
+      </table>
+    </div>
+    <div style="margin-top:.75rem;font-size:11px;color:var(--text3)">셀에 마우스를 올리면 상세 시간 확인 · Billable 시간 기준 상위 15개 프로젝트 표시</div>
+  </div>`;
+
+  // ── 9. 직원별 Billable 랭킹 ──
+  const personBars = personsRank.map(p => {
+    const v = personMap[p];
+    const pct = v.total > 0 ? v.bill/v.total : 0;
+    const pctNum = (pct*100).toFixed(1);
+    const c = billColor(v.bill, v.total);
+    const team = getTeam(p);
+    return `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2)">
+      <div style="width:140px;font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0" title="${p}">${p}</div>
+      <div style="font-size:10px;color:${team.color};background:${team.bg};border:1px solid ${team.border};border-radius:4px;padding:1px 6px;white-space:nowrap;flex-shrink:0;width:160px;text-align:center;overflow:hidden;text-overflow:ellipsis">${team.team}</div>
+      <div style="flex:1;height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;min-width:60px">
+        <div style="height:100%;width:${pctNum}%;background:${pct>=0.7?'var(--green)':pct>=0.5?'var(--amber)':'var(--red)'};border-radius:99px;transition:width .4s ease"></div>
+      </div>
+      <div style="width:44px;text-align:right;font-size:12px;font-weight:700;color:${c.text};flex-shrink:0">${pctNum}%</div>
+      <div style="width:72px;text-align:right;font-size:11px;color:var(--green);flex-shrink:0">${v.bill.toFixed(1)}h</div>
+      <div style="width:52px;text-align:right;font-size:11px;color:var(--text3);flex-shrink:0">${v.total.toFixed(1)}h</div>
+    </div>`;
+  }).join('');
+
+  const personRanking = `
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+      <div class="card-title" style="margin-bottom:0">📊 직원별 Billable 비율 순위</div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--text3);font-weight:600">정렬:</span>
+        ${sortBtn('rank','bill','Billable 시간')}
+        ${sortBtn('rank','pct','비율')}
+        ${sortBtn('rank','total','총 시간')}
+      </div>
+    </div>
+    <div style="display:flex;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:0 0 6px;border-bottom:1px solid var(--border);gap:10px">
+      <span style="width:140px;flex-shrink:0">직원</span>
+      <span style="flex:1">팀</span>
+      <span style="flex:2">Billable 비율</span>
+      <span style="width:44px;text-align:right;flex-shrink:0">비율</span>
+      <span style="width:72px;text-align:right;flex-shrink:0">Billable</span>
+      <span style="width:52px;text-align:right;flex-shrink:0">총계</span>
+    </div>
+    ${personBars}
+  </div>`;
+
+  el.innerHTML = summaryCards + personRanking + heatmap;
 }
 
 // ── PROJECT VIEW ───────────────────────────────────────────
