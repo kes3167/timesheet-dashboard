@@ -661,20 +661,20 @@
     Timesheet Analytics
   </a>
   <div class="nav-right">
-    <span class="nav-date-chip" id="nav-date">파일을 업로드하세요</span>
+    <span class="nav-date-chip" id="nav-date">Upload a file</span>
   </div>
 </nav>
 
 <div class="page">
 
   <!-- UPLOAD -->
-  <div class="section-label">파일 업로드</div>
+  <div class="section-label">File Upload</div>
   <div class="upload-zone" id="drop-zone">
     <div class="upload-icon">📂</div>
-    <div class="upload-title">타임시트 리포트를 여기에 끌어다 놓으세요</div>
-    <div class="upload-sub">Project Profitability Report by Job Code (Flattened) · .xlsx 형식 · 여러 파일 동시 업로드 가능</div>
+    <div class="upload-title">Drop your timesheet report here</div>
+    <div class="upload-sub">Project Profitability Report by Job Code (Flattened) · .xlsx format · Multiple files supported</div>
     <label class="upload-btn-label">
-      파일 선택하기
+      Browse files
       <input type="file" id="file-input" accept=".xlsx,.xls" multiple style="display:none">
     </label>
     <div class="file-chips" id="file-chips"></div>
@@ -688,27 +688,27 @@
       <!-- Row 1: Main view tabs -->
       <div class="toolbar-row1">
         <div class="main-tabs" id="main-tabs">
-          <button class="main-tab active" onclick="switchMainView('overview', this)">전체 현황</button>
-          <button class="main-tab" onclick="switchMainView('people', this)">직원 현황</button>
-          <button class="main-tab" onclick="switchMainView('project', this)">프로젝트 현황</button>
-          <button class="main-tab" onclick="switchMainView('teamview', this)">팀 현황</button>
-          <button class="main-tab" onclick="switchMainView('billable', this)">Billable 현황</button>
-          <button class="main-tab" onclick="switchMainView('detail', this)">상세 내역</button>
-          <button class="main-tab" onclick="switchMainView('taskmap', this)">태스크 분류</button>
+          <button class="main-tab active" onclick="switchMainView('overview', this)">Overview</button>
+          <button class="main-tab" onclick="switchMainView('people', this)">People</button>
+          <button class="main-tab" onclick="switchMainView('project', this)">Projects</button>
+          <button class="main-tab" onclick="switchMainView('teamview', this)">Teams</button>
+          <button class="main-tab" onclick="switchMainView('billable', this)">Billable</button>
+          <button class="main-tab" onclick="switchMainView('detail', this)">Detail</button>
+          <button class="main-tab" onclick="switchMainView('taskmap', this)">Task Map</button>
         </div>
       </div>
       <!-- Row 2: Date navigator + actions -->
       <div class="toolbar-row2">
         <div class="date-nav">
           <div class="gran-pills">
-            <button class="gran-pill active" onclick="setGranularity('month', this)">월별</button>
-            <button class="gran-pill" onclick="setGranularity('week', this)">주별</button>
-            <button class="gran-pill" onclick="setGranularity('day', this)">기간</button>
+            <button class="gran-pill active" onclick="setGranularity('month', this)">Monthly</button>
+            <button class="gran-pill" onclick="setGranularity('week', this)">Weekly</button>
+            <button class="gran-pill" onclick="setGranularity('day', this)">Range</button>
           </div>
           <div class="date-nav-ctrl">
             <button class="nav-arrow" onclick="navDate(-1)">‹</button>
             <div class="date-label-wrap">
-              <button class="date-label-btn" onclick="toggleCalendar()" id="date-label-btn">전체</button>
+              <button class="date-label-btn" onclick="toggleCalendar()" id="date-label-btn">All</button>
               <div id="calendar-popup" class="calendar-popup" style="display:none">
                 <div class="cal-header">
                   <button class="cal-nav" onclick="calNav(-1)">‹</button>
@@ -719,14 +719,14 @@
               </div>
             </div>
             <button class="nav-arrow" onclick="navDate(1)">›</button>
-            <button class="nav-today" onclick="navToday()">현재</button>
-            <button class="nav-reset" onclick="navReset()" title="전체 보기">↺</button>
+            <button class="nav-today" onclick="navToday()">Today</button>
+            <button class="nav-reset" onclick="navReset()" title="All view">↺</button>
           </div>
         </div>
         <!-- Right actions -->
         <div class="toolbar-actions">
-          <button class="btn-sm" onclick="printReport()">🖨 출력</button>
-          <button class="btn-sm" onclick="exportExcel()">⬇ CSV</button>
+          <button class="btn-sm" onclick="printReport()">🖨 Print</button>
+          <button class="btn-sm" onclick="exportExcel()">⬇ Export</button>
         </div>
       </div>
     </div>
@@ -734,32 +734,32 @@
     <!-- FILTER PANEL -->
     <div class="filter-panel" id="filter-panel">
       <div class="filter-panel-header">
-        <div class="filter-panel-title">🔍 필터 <span id="filter-active-badge" style="display:none" class="filter-active-count">0</span></div>
-        <button class="filter-clear-btn" onclick="clearAllFilters()">전체 초기화</button>
+        <div class="filter-panel-title">🔍 Filters <span id="filter-active-badge" style="display:none" class="filter-active-count">0</span></div>
+        <button class="filter-clear-btn" onclick="clearAllFilters()">All reset</button>
       </div>
       <div class="filter-grid">
         <div class="filter-group">
-          <label>키워드 검색</label>
-          <input type="text" class="filter-input" id="f-keyword" placeholder="이름, 프로젝트, 태스크..." oninput="applyFilters()">
+          <label>Keyword search</label>
+          <input type="text" class="filter-input" id="f-keyword" placeholder="Name, project, task..." oninput="applyFilters()">
         </div>
         <div class="filter-group">
-          <label>스폰서</label>
+          <label>Sponsor</label>
           <select class="filter-input filter-select" id="f-sponsor" onchange="applyFilters()">
-            <option value="">전체</option>
+            <option value="">All</option>
           </select>
         </div>
         <div class="filter-group">
-          <label>직원</label>
+          <label>Employee</label>
           <select class="filter-input filter-select" id="f-person" onchange="applyFilters()">
-            <option value="">전체</option>
+            <option value="">All</option>
           </select>
         </div>
         <div class="filter-group">
-          <label>청구 여부</label>
+          <label>Billable</label>
           <select class="filter-input filter-select" id="f-billable" onchange="applyFilters()">
-            <option value="">전체</option>
-            <option value="1">청구 가능</option>
-            <option value="0">청구 불가</option>
+            <option value="">All</option>
+            <option value="1">Billable</option>
+            <option value="0">Non-billable</option>
           </select>
         </div>
       </div>
@@ -775,16 +775,16 @@
       <div class="charts-grid" style="margin-bottom:14px">
         <div class="card card-clickable" onclick="goToView('detail')">
           <div class="card-title-wrap">
-            <div class="card-title">스폰서별 시간 분포</div>
-            <span class="card-link-hint">상세내역 →</span>
+            <div class="card-title">Hours by Sponsor</div>
+            <span class="card-link-hint">Details →</span>
           </div>
           <div class="legend" id="sponsor-legend"></div>
           <div style="position:relative;height:220px"><canvas id="sponsorChart"></canvas></div>
         </div>
         <div class="card card-clickable" onclick="goToView('billable')">
           <div class="card-title-wrap">
-            <div class="card-title">날짜별 청구 가능 / 불가</div>
-            <span class="card-link-hint">Billable 현황 →</span>
+            <div class="card-title">Billable vs Non-billable by Date</div>
+            <span class="card-link-hint">Billable →</span>
           </div>
           <div style="position:relative;height:270px"><canvas id="billableChart"></canvas></div>
         </div>
@@ -792,20 +792,20 @@
       <div class="charts-grid">
         <div class="card card-clickable" onclick="goToView('taskmap')">
           <div class="card-title-wrap">
-            <div class="card-title">태스크 유형별 상위 8개</div>
-            <span class="card-link-hint">태스크 분류 →</span>
+            <div class="card-title">Top 8 task types</div>
+            <span class="card-link-hint">Task Map →</span>
           </div>
           <div style="position:relative;height:270px"><canvas id="taskChart"></canvas></div>
         </div>
         <div class="card card-clickable" onclick="goToView('project')">
           <div class="card-title-wrap">
-            <div class="card-title">프로젝트별 상위 8개</div>
-            <span class="card-link-hint">프로젝트 현황 →</span>
+            <div class="card-title">Top 8 Projects</div>
+            <span class="card-link-hint">Projects →</span>
           </div>
           <div style="position:relative;height:270px"><canvas id="projectChart"></canvas></div>
         </div>
         <div class="card full">
-          <div class="card-title">날짜별 총 투입 시간 추이</div>
+          <div class="card-title">Total Hours Trend</div>
           <div style="position:relative;height:200px"><canvas id="trendChart"></canvas></div>
         </div>
       </div>
@@ -814,30 +814,30 @@
     <!-- Compare -->
     <div id="view-compare" style="display:none">
       <div class="card">
-        <div class="card-title">날짜별 스폰서 시간 비교</div>
-        <div id="compare-content"><div class="empty">파일이 2개 이상 있어야 비교할 수 있어요.</div></div>
+        <div class="card-title">Sponsor Hours Comparison by Date</div>
+        <div id="compare-content"><div class="empty">Need at least 2 date groups to compare.</div></div>
       </div>
     </div>
 
     <!-- People -->
     <div id="view-people" style="display:none">
       <div style="display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start">
-        <!-- 좌측: 직원 목록 -->
+        <!-- left: Employee list -->
         <div class="card" style="padding:0;overflow:hidden;position:sticky;top:70px">
           <div style="padding:.75rem 1rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:13px;font-weight:700;color:var(--text)">직원 목록</span>
+            <span style="font-size:13px;font-weight:700;color:var(--text)">Employee list</span>
             <span id="people-count" style="font-size:11px;color:var(--text3)"></span>
           </div>
           <div style="padding:.5rem">
-            <input type="text" id="people-search" placeholder="이름 검색..." oninput="filterPeopleList()"
+            <input type="text" id="people-search" placeholder="Search name..." oninput="filterPeopleList()"
               style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;outline:none;background:var(--surface2)">
           </div>
           <div id="people-list" style="overflow-y:auto;max-height:calc(100vh - 220px)"></div>
         </div>
-        <!-- 우측: 상세 패널 -->
+        <!-- Right: detail panel -->
         <div id="people-detail-panel">
           <div style="display:flex;align-items:center;justify-content:center;height:300px;color:var(--text3);font-size:14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border2)">
-            ← 왼쪽에서 직원을 선택하세요
+            ← Select an employee from the left
           </div>
         </div>
       </div>
@@ -848,17 +848,17 @@
       <div class="card">
         <div id="det-back-bar" style="display:none;margin-bottom:.75rem">
           <button class="btn-sm" onclick="goBackToTaskmap()" style="gap:6px;display:flex;align-items:center">
-            ← 태스크 분류로 돌아가기
+            ← Back to Task Map
           </button>
         </div>
         <div class="table-toolbar">
           <div class="table-search">
             <span class="table-search-icon">🔍</span>
-            <input type="text" id="det-search" placeholder="테이블 내 검색..." oninput="filterDetailTable()">
+            <input type="text" id="det-search" placeholder="Search table..." oninput="filterDetailTable()">
           </div>
           <div class="table-actions">
             <select class="filter-input filter-select" id="det-person-filter" onchange="filterDetailTable()" style="max-width:160px;font-size:12px;padding:5px 28px 5px 10px">
-              <option value="">👤 전체 직원</option>
+              <option value="">👤 All Employee</option>
             </select>
             <span id="detail-count" style="font-size:12px;color:var(--text2)"></span>
 
@@ -866,8 +866,8 @@
         </div>
         <div id="det-person-tag" style="display:none;margin-bottom:.75rem"></div>
         <div class="cat-filter-row" id="det-cat-row">
-          <span class="cat-filter-label">대분류</span>
-          <button class="cat-chip-all active" id="cat-chip-all" onclick="setCatFilter(null, this)">전체</button>
+          <span class="cat-filter-label">Category</span>
+          <button class="cat-chip-all active" id="cat-chip-all" onclick="setCatFilter(null, this)">All</button>
           <span id="det-cat-chips"></span>
         </div>
         <div class="table-wrap">
@@ -880,7 +880,7 @@
       </div>
     </div>
 
-    <!-- Billable 현황 -->
+    <!-- Billable -->
     <div id="view-billable" style="display:none">
       <div id="billable-content"></div>
     </div>
@@ -918,23 +918,23 @@
       <div class="modal-stats" id="modal-stats"></div>
       <div class="modal-charts">
         <div>
-          <div class="modal-section-title">스폰서별 분포</div>
+          <div class="modal-section-title">By Sponsor</div>
           <div style="position:relative;height:180px"><canvas id="modalSponsorChart"></canvas></div>
         </div>
         <div>
-          <div class="modal-section-title">태스크 유형</div>
+          <div class="modal-section-title">Task type</div>
           <div style="position:relative;height:180px"><canvas id="modalTaskChart"></canvas></div>
         </div>
       </div>
       <div>
-        <div class="modal-section-title">날짜별 투입 시간</div>
+        <div class="modal-section-title">Hours by date</div>
         <div style="position:relative;height:140px"><canvas id="modalTrendChart"></canvas></div>
       </div>
       <div style="margin-top:1.5rem">
-        <div class="modal-section-title">상세 내역</div>
+        <div class="modal-section-title">Detail</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>날짜</th><th>스폰서</th><th>프로젝트</th><th>태스크</th><th style="text-align:right">시간</th></tr></thead>
+            <thead><tr><th>Date</th><th>Sponsor</th><th>Projects</th><th>Task</th><th style="text-align:right">Hours</th></tr></thead>
             <tbody id="modal-detail-body"></tbody>
           </table>
         </div>
@@ -943,7 +943,7 @@
   </div>
 </div>
 
-<div class="footer">Timesheet Analytics · 파일은 브라우저에서만 처리되며 서버에 저장되지 않습니다.</div>
+<div class="footer">Timesheet Analytics · Files are processed locally and never stored on a server.</div>
 
 <script>
 const COLORS = ['#378ADD','#1D9E75','#7F77DD','#EF9F27','#D85A30','#3B6D11','#D4537E','#0F6E56','#888780','#533AB7','#BA7517','#E24B4A','#1a6640','#6e3b0f'];
@@ -957,61 +957,61 @@ function makeLegendHTML(labels, colors, values) {
     }).join('') + `</div>`;
 }
 
-// 대분류 카테고리 — Job Code 부서 코드 기반 매핑
-// Job Code 형식: {프로젝트코드}-{부서코드}-{타입}-{번호}
-// 예: ABSO-25002-RO-PR-001 → 부서코드 = RO
+// Category category — Job Code dept code based mapping
+// Job Code format: {Projectscode}-{deptcode}-{type}-{number}
+// e.g. ABSO-25002-RO-PR-001 → dept code = RO
 const CATEGORIES = [
   {
-    code: 'RO', name: '규제 운영 (Reg Ops)',
+    code: 'RO', name: 'Regulatory Ops (RO)',
     color: '#2563EB', bg: '#eff6ff', border: '#93c5fd',
     dept: ['RO'],
-    desc: '규제 문서 제출 및 운영'
+    desc: 'Regulatory document submission and operations'
   },
   {
-    code: 'RS', name: '규제 컨설팅 (Reg Strategy)',
+    code: 'RS', name: 'Reg Strategy (RS)',
     color: '#7C3AED', bg: '#faf5ff', border: '#d8b4fe',
     dept: ['RS'],
-    desc: '규제 전략 및 컨설팅'
+    desc: 'Regulatory strategy and consulting'
   },
   {
-    code: 'DM', name: '데이터 관리 (Data Mgmt)',
+    code: 'DM', name: 'Data Management (DM)',
     color: '#0D9488', bg: '#f0fdfa', border: '#5eead4',
     dept: ['DM'],
-    desc: '임상 데이터 관리'
+    desc: 'Clinical data management'
   },
   {
-    code: 'QC', name: '품질 관리 (QC)',
+    code: 'QC', name: 'Quality Control (QC)',
     color: '#D97706', bg: '#fffbeb', border: '#fcd34d',
     dept: ['QC'],
-    desc: '품질 검토 및 관리'
+    desc: 'Quality review and management'
   },
   {
-    code: 'SD', name: '통계 (Statistics)',
+    code: 'SD', name: 'Statistics (SD)',
     color: '#16A34A', bg: '#f0fdf4', border: '#86efac',
     dept: ['SD'],
-    desc: '통계 분석 및 프로그래밍'
+    desc: 'Statistical analysis and programming'
   },
   {
-    code: 'BS', name: '바이오통계 (Biostatistics)',
+    code: 'BS', name: 'Biostatistics (BS)',
     color: '#059669', bg: '#ecfdf5', border: '#6ee7b7',
     dept: ['BS'],
-    desc: '바이오통계 분석'
+    desc: 'Biostatistical analysis'
   },
   {
     code: 'SC', name: 'Clinical Operations',
     color: '#0891B2', bg: '#ecfeff', border: '#67e8f9',
     dept: ['SC', 'CR'],
-    desc: '임상시험 운영 및 관리'
+    desc: 'Clinical trial operations and management'
   },
   {
-    code: 'INT', name: '사내 업무 (Internal)',
+    code: 'INT', name: 'Internal',
     color: '#6B7280', bg: '#f9fafb', border: '#d1d5db',
     dept: ['NO'],
-    desc: 'Job Code 미배정 사내 업무'
+    desc: 'Job Code Unassigned internal work'
   },
 ];
 
-// Job Code에서 부서 코드 추출
+// Job CodeExtract department code from Job Code
 function getDeptCode(jobCode) {
   if (!jobCode || jobCode === 'NO-JOBCODE-ASSIGNED' || String(jobCode).startsWith('NO-')) return 'NO';
   const parts = String(jobCode).split('-');
@@ -1021,7 +1021,7 @@ function getDeptCode(jobCode) {
   return null;
 }
 
-// Task 이름 키워드 → 대분류 코드 매핑 (NO-JOBCODE fallback용)
+// Task name keyword → category code mapping (NO-JOBCODE fallback)
 const TASK_KEYWORD_MAP = [
   { code: 'SD', keywords: ['sdtm','adam','tlf','sas','programming','mapping','validation','edit check','offline edit','reviewer guide','statistical','analysis plan','sap review'] },
   { code: 'DM', keywords: ['data management','database lock','dmp','data management plan','data review','data management review','reconciliation','query','edc','crf'] },
@@ -1030,7 +1030,7 @@ const TASK_KEYWORD_MAP = [
   { code: 'RS', keywords: ['regulatory consulting','proposal development','proposal'] },
   { code: 'BS', keywords: ['biostatistics','biostat'] },
   { code: 'SC', keywords: ['clinical','site','monitoring','cra','investigator'] },
-  { code: 'INT', keywords: ['training','사내교육','onboarding','intern training'] },
+  { code: 'INT', keywords: ['training','Internal training','onboarding','intern training'] },
 ];
 
 function getCatByTaskName(task) {
@@ -1044,28 +1044,28 @@ function getCatByTaskName(task) {
 }
 
 function getCat(task, jobCode, sponsor) {
-  // 1. Sponsor가 'Company Internal'이면 → 무조건 INT (Job Code 무시)
+  // 1. If Sponsor is 'Company Internal' → force INT (ignore Job Code)
   if (sponsor && String(sponsor).trim() === 'Company Internal') {
     return CATEGORIES.find(c => c.code === 'INT') || null;
   }
   const dept = getDeptCode(jobCode);
-  // 2. Job Code 있으면 부서 코드 기반 매핑
+  // 2. If Job Code exists, map by department code
   if (dept && dept !== 'NO') {
     for (const c of CATEGORIES) {
       if (c.dept.includes(dept)) return c;
     }
   }
-  // 3. NO-JOBCODE + 일반 스폰서 → Task 이름 기반 fallback
+  // 3. NO-JOBCODE + general Sponsor → Task name based fallback
   if (dept === 'NO') {
     return getCatByTaskName(task);
   }
   return null;
 }
 
-// task만 받는 경우를 위한 fallback (기존 호환성)
+// taskFallback for task-only input (legacy compatibility)
 const _origGetCat = getCat;
 
-// 항상 색상 반환 (매핑 없어도 자동 할당)
+// Always return a color (auto-assign even without mapping)
 const _taskColorCache = {};
 function getTaskColor(task) {
   if (_taskColorCache[task]) return _taskColorCache[task];
@@ -1089,7 +1089,7 @@ function getTaskColor(task) {
 function getTaskStyle(task, jobCode, sponsor) {
   const cat = getCat(task, jobCode, sponsor);
   if (cat) return cat;
-  // INT(Company Internal)면 INT 색상 고정
+  // Force INT color if sponsor is 'Company Internal'
   if (sponsor && String(sponsor).trim() === 'Company Internal') {
     return CATEGORIES.find(c => c.code === 'INT') || getTaskColor(task);
   }
@@ -1101,7 +1101,7 @@ const COLS = ['Sponsor Name','Project Name','Project Internal Number','Job Code'
 let allData = [];
 let filteredData = [];
 let dateKeys = [];
-let activeDate = 'all';      // 선택된 탭 키
+let activeDate = 'all';      // Selected tab key
 let granularity = 'all';     // 'all' | 'month' | 'week' | 'day'
 let activeView = 'overview';
 let charts = {};
@@ -1141,7 +1141,7 @@ function loadFile(file) {
       const ws = wb.Sheets[wb.SheetNames[0]];
       const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
       const hi = raw.findIndex(r => r.some(c => String(c).includes('Sponsor Name')));
-      if (hi < 0) { alert('⚠️ 올바른 형식의 파일이 아닙니다.\n"Project Profitability Report by Job Code (Flattened)" 리포트를 사용해주세요.'); return; }
+      if (hi < 0) { alert('⚠️ Invalid file format.\nPlease use the "Project Profitability Report by Job Code (Flattened)" report.'); return; }
 
       const parsed = raw.slice(hi + 1)
         .filter(r => r.some(c => c !== '') && r[0] && parseFloat(r[8]) > 0)
@@ -1159,7 +1159,7 @@ function loadFile(file) {
           return obj;
         });
 
-      if (parsed.length === 0) { alert('⚠️ 데이터를 찾을 수 없습니다.'); return; }
+      if (parsed.length === 0) { alert('⚠️ No data found.'); return; }
 
       allData = allData.filter(d => d.source !== file.name);
       allData.push(...parsed);
@@ -1170,7 +1170,7 @@ function loadFile(file) {
       applyFilters();
       showDashboard();
     } catch(err) {
-      alert('⚠️ 파일 오류: ' + err.message);
+      alert('⚠️ File error: ' + err.message);
     }
   };
   reader.readAsArrayBuffer(file);
@@ -1184,7 +1184,7 @@ function removeFile(name) {
   updateFileChips();
   if (allData.length === 0) {
     document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('nav-date').textContent = '파일을 업로드하세요';
+    document.getElementById('nav-date').textContent = 'Upload a file';
   } else {
     applyFilters();
     render();
@@ -1218,8 +1218,8 @@ function updateFilterOptions() {
   const fPerson = document.getElementById('f-person');
   const sv = fSponsor.value, pv = fPerson.value;
 
-  fSponsor.innerHTML = '<option value="">전체</option>' + sponsors.map(s => `<option value="${s}">${s}</option>`).join('');
-  fPerson.innerHTML = '<option value="">전체</option>' + people.map(p => `<option value="${p}">${p}</option>`).join('');
+  fSponsor.innerHTML = '<option value="">All</option>' + sponsors.map(s => `<option value="${s}">${s}</option>`).join('');
+  fPerson.innerHTML = '<option value="">All</option>' + people.map(p => `<option value="${p}">${p}</option>`).join('');
 
   if (sponsors.includes(sv)) fSponsor.value = sv;
   if (people.includes(pv)) fPerson.value = pv;
@@ -1258,10 +1258,10 @@ function applyFilters() {
 
   // Tags
   const tags = [];
-  if (keyword) tags.push({ label: `키워드: ${keyword}`, clear: () => { document.getElementById('f-keyword').value = ''; applyFilters(); }});
-  if (sponsor) tags.push({ label: `스폰서: ${sponsor}`, clear: () => { document.getElementById('f-sponsor').value = ''; applyFilters(); }});
-  if (person) tags.push({ label: `직원: ${person}`, clear: () => { document.getElementById('f-person').value = ''; applyFilters(); }});
-  if (billable) tags.push({ label: billable === '1' ? '청구 가능' : '청구 불가', clear: () => { document.getElementById('f-billable').value = ''; applyFilters(); }});
+  if (keyword) tags.push({ label: `Keyword: ${keyword}`, clear: () => { document.getElementById('f-keyword').value = ''; applyFilters(); }});
+  if (sponsor) tags.push({ label: `Sponsor: ${sponsor}`, clear: () => { document.getElementById('f-sponsor').value = ''; applyFilters(); }});
+  if (person) tags.push({ label: `Employee: ${person}`, clear: () => { document.getElementById('f-person').value = ''; applyFilters(); }});
+  if (billable) tags.push({ label: billable === '1' ? 'Billable' : 'Non-billable', clear: () => { document.getElementById('f-billable').value = ''; applyFilters(); }});
 
   document.getElementById('filter-tags').innerHTML = tags.map((t, i) =>
     `<div class="filter-tag">${t.label}<button class="filter-tag-remove" onclick="clearFilterTag(${i})">×</button></div>`
@@ -1306,21 +1306,21 @@ function render() {
 }
 
 // ── DATE NAVIGATOR ────────────────────────────────────────
-// YYYY-MM-DD 를 미국 동부시간(ET) 기준으로 파싱
+// Parse YYYY-MM-DD in US Eastern Time (ET)
 function parseLocalDate(dateStr) {
   const s = String(dateStr).slice(0, 10);
-  // ET 기준으로 강제 파싱 (서머타임 고려)
+  // Force parse in ET (DST aware)
   const d = new Date(`${s}T00:00:00-05:00`);
-  // 서머타임(EDT, UTC-4) 구간 확인 후 보정
+  // Check EDT (UTC-4) period and correct
   const etOffset = getETOffset(d);
   return new Date(`${s}T00:00:00${etOffset}`);
 }
 
 function getETOffset(d) {
-  // 미국 동부 서머타임: 3월 두번째 일요일 ~ 11월 첫번째 일요일
+  // US Eastern DST: 2nd Sunday in March ~ 1st Sunday in November
   const year = d.getFullYear();
-  const dstStart = getNthSunday(year, 2, 2); // 3월 두번째 일요일
-  const dstEnd = getNthSunday(year, 10, 1);  // 11월 첫번째 일요일
+  const dstStart = getNthSunday(year, 2, 2); // 2nd Sunday in March
+  const dstEnd = getNthSunday(year, 10, 1);  // 1st Sunday in November
   return (d >= dstStart && d < dstEnd) ? '-04:00' : '-05:00';
 }
 
@@ -1337,7 +1337,7 @@ function getISOWeek(dateStr) {
   const y = new Date(d.getFullYear(),0,1);
   return `${d.getFullYear()}-W${String(Math.ceil((((d-y)/86400000)+1)/7)).padStart(2,'0')}`;
 }
-// 월 기준 주 key: "YYYY-MM-Wn" (1일~7일=1주, 8일~14일=2주, ...)
+// Monthly week key: "YYYY-MM-Wn" (days 1-7=W1, 8-14=W2, ...)
 function getWeekRange(weekKey) {
   const [year,wStr] = weekKey.split('-W'); const w=parseInt(wStr);
   const jan1=new Date(parseInt(year),0,1); const dow=jan1.getDay()||7;
@@ -1351,8 +1351,8 @@ function getGroupKey(dateStr) {
   return dateStr;
 }
 function getGroupLabel(key) {
-  if (granularity==='month') { const [y,m]=key.split('-'); return `${y}년 ${parseInt(m)}월`; }
-  if (granularity==='week')  { const wn=parseInt(key.split('-W')[1]); return `${key.split('-W')[0]}년 ${wn}주차`; }
+  if (granularity==='month') { const [y,m]=key.split('-'); return `${y} ${parseInt(m)}`; }
+  if (granularity==='week')  { const wn=parseInt(key.split('-W')[1]); return `${key.split('-W')[0]} W${wn}`; }
   return key;
 }
 function getDatesForGroup(key) {
@@ -1368,11 +1368,11 @@ function getAllGroups() {
 
 function renderDateFilter() {
   const latest = dateKeys[dateKeys.length-1]||'';
-  document.getElementById('nav-date').textContent = latest ? `최근: ${latest}` : '파일 로드됨';
+  document.getElementById('nav-date').textContent = latest ? `Latest: ${latest}` : 'File loaded';
   // Update label button
   const btn = document.getElementById('date-label-btn');
   if (activeDate==='all') {
-    btn.textContent = granularity==='all' ? '전체 기간' : '전체';
+    btn.textContent = granularity==='all' ? 'All Range' : 'All';
   } else {
     btn.textContent = getGroupLabel(activeDate);
   }
@@ -1383,7 +1383,7 @@ function setGranularity(g, btn) {
   granularity = g;
   document.querySelectorAll('.gran-pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  // 그래뉼러리티 변경 시 가장 최근 그룹으로 자동 이동
+  // Auto-navigate to latest group on granularity change
   const groups = getAllGroups().filter(gr => gr !== 'all');
   activeDate = groups.length > 0 ? groups[groups.length - 1] : 'all';
   updateFilterOptions(); renderDateFilter(); applyFilters();
@@ -1467,12 +1467,12 @@ function renderCalendar() {
 
   if (granularity==='month') {
     // Show years grid with months
-    title.textContent = `${calViewYear}년`;
+    title.textContent = `${calViewYear}`;
     const months = Array.from({length:12},(_,i)=>`${calViewYear}-${String(i+1).padStart(2,'0')}`);
     body.innerHTML = '<div class="cal-grid">' + months.map(m=>{
       const hasData = groups.has(m);
       const isActive = activeDate===m;
-      const label = `${parseInt(m.split('-')[1])}월`;
+      const label = `${parseInt(m.split('-')[1])}`;
       return `<div class="cal-cell ${isActive?'active':''} ${hasData?'has-data':'no-data'}"
         onclick="${hasData?`pickDate('${m}')`:''}">
         ${label}
@@ -1480,10 +1480,10 @@ function renderCalendar() {
     }).join('') + '</div>';
 
   } else if (granularity==='week') {
-    title.textContent = `${calViewYear}년 ${calViewMonth+1}월`;
+    title.textContent = `${calViewYear} ${calViewMonth+1}`;
     const weeksInMonth = [...groups].filter(g=>g.startsWith(calViewYear+'-W')).sort();
     if (!weeksInMonth.length) {
-      body.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:1rem">데이터 없음</div>';
+      body.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:1rem">No data</div>';
       return;
     }
     body.innerHTML = '<div style="display:flex;flex-direction:column;gap:4px">' + weeksInMonth.map(w=>{
@@ -1492,13 +1492,13 @@ function renderCalendar() {
       const isActive = activeDate===w;
       return `<div class="cal-cell has-data ${isActive?'active':''}" style="text-align:left;padding:6px 10px"
         onclick="pickDate('${w}')">
-        <strong>${wn}주차</strong> <span style="font-size:10px;opacity:.7">${range}</span>
+        <strong>${wn}W</strong> <span style="font-size:10px;opacity:.7">${range}</span>
       </div>`;
     }).join('') + '</div>';
 
   } else {
     // Day picker — show month calendar
-    title.textContent = `${calViewYear}년 ${calViewMonth+1}월`;
+    title.textContent = `${calViewYear} ${calViewMonth+1}`;
     const daysInMonth = new Date(calViewYear, calViewMonth+1, 0).getDate();
     const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
     const cells = [];
@@ -1514,7 +1514,7 @@ function renderCalendar() {
     }
     body.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
-        ${['일','월','화','수','목','금','토'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);padding:2px">${d}</div>`).join('')}
+        ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--text3);padding:2px">${d}</div>`).join('')}
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">${cells.join('')}</div>`;
   }
@@ -1548,7 +1548,7 @@ function renderMetrics(data) {
         const pct = ((h2 - h1) / h1 * 100).toFixed(0);
         const cls = pct >= 0 ? 'delta-up' : 'delta-dn';
         const arrow = pct >= 0 ? '▲' : '▼';
-        deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (${getGroupLabel(g1)} 대비 ${getGroupLabel(g2)})</div>`;
+        deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (${getGroupLabel(g1)} vs ${getGroupLabel(g2)})</div>`;
       }
     } else if (granularity === 'all') {
       const byDate = {};
@@ -1558,7 +1558,7 @@ function renderMetrics(data) {
         const pct = ((last - first) / first * 100).toFixed(0);
         const cls = pct >= 0 ? 'delta-up' : 'delta-dn';
         const arrow = pct >= 0 ? '▲' : '▼';
-        deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (첫날 대비 최신)</div>`;
+        deltaHtml = `<div class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}% (first vs latest)</div>`;
       }
     }
   }
@@ -1597,7 +1597,7 @@ function renderMetrics(data) {
   const catBreakdown = Object.entries(
     data.reduce((m, d) => {
       const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
-      const k = cat ? `${cat.code} ${cat.name}` : '미분류';
+      const k = cat ? `${cat.code} ${cat.name}` : 'Unclassified';
       m[k] = (m[k]||0)+d.Hours; return m;
     }, {})
   ).sort((a,b)=>b[1]-a[1]).slice(0,4);
@@ -1611,62 +1611,62 @@ function renderMetrics(data) {
 
   document.getElementById('metrics').innerHTML = `
     <div class="metric">
-      <div class="metric-label">총 투입 시간</div>
+      <div class="metric-label">Total hours</div>
       <div class="metric-value">${total.toFixed(1)}h</div>
       ${deltaHtml}
       <div class="metric-tooltip">
-        <div class="tooltip-title">대분류별 시간</div>
+        <div class="tooltip-title">Hours by category</div>
         ${tooltipRows(catBreakdown)}
       </div>
     </div>
     <div class="metric">
-      <div class="metric-label">청구 가능 시간</div>
+      <div class="metric-label">Billable Hours</div>
       <div class="metric-value">${billable.toFixed(1)}h</div>
-      <div class="metric-sub">전체의 ${billPct}%</div>
+      <div class="metric-sub">${billPct}% of total</div>
       <div class="metric-tooltip">
-        <div class="tooltip-title">청구 현황</div>
-        <div class="tooltip-row"><span class="tooltip-key">청구 가능</span><span class="tooltip-val" style="color:#6ee7b7">${billable.toFixed(1)}h (${billPct}%)</span></div>
-        <div class="tooltip-row"><span class="tooltip-key">청구 불가</span><span class="tooltip-val" style="color:#fca5a5">${(total-billable).toFixed(1)}h (${100-billPct}%)</span></div>
-        <div class="tooltip-row"><span class="tooltip-key">총합</span><span class="tooltip-val">${total.toFixed(1)}h</span></div>
+        <div class="tooltip-title">Billing status</div>
+        <div class="tooltip-row"><span class="tooltip-key">Billable</span><span class="tooltip-val" style="color:#6ee7b7">${billable.toFixed(1)}h (${billPct}%)</span></div>
+        <div class="tooltip-row"><span class="tooltip-key">Non-billable</span><span class="tooltip-val" style="color:#fca5a5">${(total-billable).toFixed(1)}h (${100-billPct}%)</span></div>
+        <div class="tooltip-row"><span class="tooltip-key">Total</span><span class="tooltip-val">${total.toFixed(1)}h</span></div>
       </div>
     </div>
     <div class="metric">
-      <div class="metric-label">1인 평균 시간</div>
+      <div class="metric-label">Avg per person</div>
       <div class="metric-value">${avgPerPerson}h</div>
-      <div class="metric-sub">참여 ${people}명 기준</div>
+      <div class="metric-sub">participating ${people}people</div>
       <div class="metric-tooltip">
-        <div class="tooltip-title">투입 시간 상위 직원</div>
+        <div class="tooltip-title">assigned Hours top Employee</div>
         ${tooltipRows(topPeople)}
       </div>
     </div>
     <div class="metric">
-      <div class="metric-label">참여 인원</div>
+      <div class="metric-label">Headcount</div>
       <div class="metric-value">${people}</div>
-      <div class="metric-sub">명</div>
+      <div class="metric-sub">people</div>
       <div class="metric-tooltip">
-        <div class="tooltip-title">직원별 투입 시간</div>
+        <div class="tooltip-title">Hours by Employee</div>
         ${tooltipRows(allPeople.slice(0,5))}
-        ${allPeople.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">외 ${allPeople.length-5}명...</div>` : ''}
+        ${allPeople.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">+${allPeople.length-5} moremore...</div>` : ''}
       </div>
     </div>
     <div class="metric">
-      <div class="metric-label">프로젝트</div>
+      <div class="metric-label">Projects</div>
       <div class="metric-value">${projects}</div>
-      <div class="metric-sub">건</div>
+      <div class="metric-sub"> records</div>
       <div class="metric-tooltip">
-        <div class="tooltip-title">프로젝트별 투입 시간</div>
+        <div class="tooltip-title">Hours by Project</div>
         ${tooltipRows(allProjects.slice(0,5))}
-        ${allProjects.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">외 ${allProjects.length-5}건...</div>` : ''}
+        ${allProjects.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">+${allProjects.length-5} records...</div>` : ''}
       </div>
     </div>
     <div class="metric">
-      <div class="metric-label">스폰서</div>
+      <div class="metric-label">Sponsor</div>
       <div class="metric-value">${sponsors}</div>
-      <div class="metric-sub">개사</div>
+      <div class="metric-sub">clients</div>
       <div class="metric-tooltip">
-        <div class="tooltip-title">스폰서별 투입 시간</div>
+        <div class="tooltip-title">Hours by Sponsor</div>
         ${tooltipRows(allSponsors.slice(0,5))}
-        ${allSponsors.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">외 ${allSponsors.length-5}개사...</div>` : ''}
+        ${allSponsors.length > 5 ? `<div style="color:rgba(255,255,255,.4);font-size:11px;margin-top:5px">+${allSponsors.length-5}clients...</div>` : ''}
       </div>
     </div>
   `;
@@ -1716,13 +1716,13 @@ function renderActiveView() {
   if (activeView === 'taskmap') renderTaskMap(filteredData);
 }
 
-// ── BILLABLE 현황 VIEW ─────────────────────────────────────
-// 정렬 상태 (뷰 간 유지)
+// ── BILLABLE Status VIEW ─────────────────────────────────────
+// Sort state (preserved across views)
 let _billSortKey  = 'bill';   // 'bill' | 'pct' | 'total'
-let _billSortAsc  = false;    // false = 내림차순(기본)
+let _billSortAsc  = false;    // false = Descending (default)
 let _heatSortKey  = 'bill';
 let _heatSortAsc  = false;
-let _billRawData  = null;     // 재정렬 시 원본 데이터 재사용
+let _billRawData  = null;     // Reuse original data on re-sort
 
 function setBillSort(section, key) {
   if (section === 'rank') {
@@ -1738,9 +1738,9 @@ function setBillSort(section, key) {
 function renderBillableView(data) {
   _billRawData = data;
   const el = document.getElementById('billable-content');
-  if (!data || !data.length) { el.innerHTML = '<div class="empty">데이터를 업로드하세요.</div>'; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="empty">Please upload data.</div>'; return; }
 
-  // ── 1. 직원별 집계 ──
+  // ── 1. Aggregate by employee
   const personMap = {};
   data.forEach(d => {
     if (!personMap[d.Name]) personMap[d.Name] = { total:0, bill:0, projects:{} };
@@ -1752,7 +1752,7 @@ function renderBillableView(data) {
     if (d.isBillable) personMap[d.Name].projects[proj].bill += d.Hours;
   });
 
-  // ── 2. 프로젝트 목록 (billable 시간 기준, 상위 15개) ──
+  // ── 2. Project list (top 15 by billable hours) ──
   const projTotals = {};
   data.forEach(d => {
     const proj = d['Project Name'] || '—';
@@ -1764,7 +1764,7 @@ function renderBillableView(data) {
     .sort((a,b) => b[1].bill - a[1].bill)
     .slice(0, 15).map(([name]) => name);
 
-  // ── 3. 정렬 헬퍼 ──
+  // ── 3. Sort helper
   function sortPersons(key, asc) {
     return Object.entries(personMap).sort((a,b) => {
       const va = a[1], vb = b[1];
@@ -1779,14 +1779,14 @@ function renderBillableView(data) {
   const personsHeat = sortPersons(_heatSortKey, _heatSortAsc).filter(p => personMap[p].bill > 0);
   const personsRank = sortPersons(_billSortKey, _billSortAsc).filter(p => personMap[p].total > 0 && personMap[p].bill > 0);
 
-  // ── 4. 히트맵 최대값 ──
+  // ── 4. Heatmap max value
   let maxBill = 0;
   personsHeat.forEach(p => projects.forEach(proj => {
     const v = personMap[p].projects[proj]?.bill || 0;
     if (v > maxBill) maxBill = v;
   }));
 
-  // ── 5. 색상 함수 ──
+  // ── 5. Color function
   function billColor(bill, total) {
     if (!total) return { bg:'#f3f4f6', text:'#9ca3af' };
     const pct = bill / total;
@@ -1802,21 +1802,21 @@ function renderBillableView(data) {
     return `rgba(${Math.round(50+(1-i)*180)},${Math.round(102+(1-i)*120)},${Math.round(173+(1-i)*60)},${0.12+i*0.55})`;
   }
 
-  // ── 6. 요약 카드 ──
+  // ── 6. Summary cards ──
   const totalAll = data.reduce((s,d)=>s+d.Hours,0);
   const billAll  = data.filter(d=>d.isBillable).reduce((s,d)=>s+d.Hours,0);
   const billPctAll = totalAll > 0 ? (billAll/totalAll*100).toFixed(1) : 0;
 
-  // 0% 직원 제외한 personMap
+  // 0% Employee excluding personMap
   const personMapBillable = Object.fromEntries(Object.entries(personMap).filter(([,v])=>v.total>0&&v.bill>0));
 
-  // 상위 5 직원 (billable 시간 기준)
+  // top 5 Employee (billable Hours standard)
   const top5bill = Object.entries(personMapBillable).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
-  // 상위 5 직원 (non-billable 기준)
+  // top 5 Employee (non-billable standard)
   const top5nonbill = Object.entries(personMapBillable).sort((a,b)=>(b[1].total-b[1].bill)-(a[1].total-a[1].bill)).slice(0,5);
-  // 상위 5 프로젝트 (billable 시간 기준)
+  // top 5 Projects (billable Hours standard)
   const top5proj = Object.entries(projTotals).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
-  // Billable 90%+ 직원 목록
+  // Billable 90%+ Employee list
   const high90 = Object.entries(personMapBillable).filter(([,v])=>v.total>0&&v.bill/v.total>=0.9).sort((a,b)=>b[1].bill-a[1].bill).slice(0,5);
 
   function tooltipRows(items, labelFn, valFn, color) {
@@ -1857,25 +1857,25 @@ function renderBillableView(data) {
     }
   </style>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem">
-    ${cardWithTooltip('var(--green)','전체 Billable 시간',`${billAll.toFixed(1)}h`,`전체의 ${billPctAll}%`,
-      '🏆 Billable 상위 5명',
+    ${cardWithTooltip('var(--green)','All Billable Hours',`${billAll.toFixed(1)}h`,`${billPctAll}% of total`,
+      '🏆 Top 5 by Billable',
       tooltipRows(top5bill, ([n])=>n, ([,v])=>`${v.bill.toFixed(1)}h`, '#4ade80')
     )}
-    ${cardWithTooltip('var(--red)','Non-Billable 시간',`${(totalAll-billAll).toFixed(1)}h`,`전체의 ${(100-parseFloat(billPctAll)).toFixed(1)}%`,
-      '⚠️ Non-Billable 상위 5명',
+    ${cardWithTooltip('var(--red)','Non-Billable Hours',`${(totalAll-billAll).toFixed(1)}h`,`${(100-parseFloat(billPctAll)).toFixed(1)}% of total`,
+      '⚠️ Top 5 Non-Billable',
       tooltipRows(top5nonbill, ([n])=>n, ([,v])=>`${(v.total-v.bill).toFixed(1)}h`, '#f87171')
     )}
-    ${cardWithTooltip('var(--blue)','참여 직원 수',`${Object.keys(personMapBillable).length}명`,`프로젝트 ${projects.length}건`,
-      '📋 Billable 상위 5 프로젝트',
+    ${cardWithTooltip('var(--blue)','Participating Employees',`${Object.keys(personMapBillable).length}`,`Projects ${projects.length} records`,
+      '📋 Billable top 5 Projects',
       tooltipRows(top5proj, ([n])=>n.length>18?n.slice(0,17)+'…':n, ([,v])=>`${v.bill.toFixed(1)}h`, '#60a5fa')
     )}
-    ${cardWithTooltip('var(--amber)','Billable 90%+ 직원',`${high90.length}명`,`전체 ${Object.keys(personMapBillable).length}명 중`,
-      '⭐ Billable 90%+ 직원',
+    ${cardWithTooltip('var(--amber)','Billable 90%+ Employee',`${high90.length}`,`of ${Object.keys(personMapBillable).length} total`,
+      '⭐ Billable 90%+ Employee',
       tooltipRows(high90, ([n])=>n, ([,v])=>`${(v.bill/v.total*100).toFixed(0)}%`, '#fbbf24')
     )}
   </div>`;
 
-  // ── 7. 정렬 버튼 헬퍼 ──
+  // ── 7. Sort button helper
   function sortBtn(section, key, label) {
     const active = section==='rank' ? _billSortKey===key : _heatSortKey===key;
     const asc    = section==='rank' ? _billSortAsc       : _heatSortAsc;
@@ -1886,8 +1886,8 @@ function renderBillableView(data) {
     return `<button onclick="setBillSort('${section}','${key}')" style="padding:4px 12px;border-radius:99px;border:1px solid;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;${style}">${label}${arrow}</button>`;
   }
 
-  // ── 8. 히트맵 (프로젝트=행, 직원=열) ──
-  // 직원 컬럼 헤더
+  // ── 8. Heatmap (project=row, employee=col) ──
+  // Employee column header
   const personCols = personsHeat.map(p => {
     const v = personMap[p];
     const pct = v.total>0?(v.bill/v.total*100).toFixed(0):0;
@@ -1899,7 +1899,7 @@ function renderBillableView(data) {
     </th>`;
   }).join('');
 
-  // 프로젝트 행
+  // Project rows
   const heatRows = projects.map(proj => {
     const pv = projTotals[proj];
     const projPct = pv.total>0?(pv.bill/pv.total*100).toFixed(0):0;
@@ -1910,7 +1910,7 @@ function renderBillableView(data) {
       if (!cv || cv.total===0) return `<td style="text-align:center;padding:3px;font-size:10px;color:var(--text3)">—</td>`;
       const c = billColor(cv.bill, cv.total);
       const pct = cv.total>0?(cv.bill/cv.total*100).toFixed(0):0;
-      return `<td style="text-align:center;padding:2px 3px" title="${p} · ${proj}&#10;Billable: ${cv.bill.toFixed(1)}h / 총: ${cv.total.toFixed(1)}h (${pct}%)">
+      return `<td style="text-align:center;padding:2px 3px" title="${p} · ${proj}&#10;Billable: ${cv.bill.toFixed(1)}h / Total: ${cv.total.toFixed(1)}h (${pct}%)">
         <div style="background:${heatBg(cv.bill)};border-radius:5px;padding:3px 2px">
           <div style="font-size:11px;font-weight:700;color:${c.text}">${cv.bill.toFixed(1)}h</div>
           <div style="font-size:9px;color:${c.text};opacity:.8">${pct}%</div>
@@ -1927,34 +1927,34 @@ function renderBillableView(data) {
   const heatmap = `
   <div class="card" style="margin-bottom:1.25rem">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
-      <div class="card-title" style="margin-bottom:0">📋 × 👤 프로젝트 × 직원 Billable 히트맵</div>
+      <div class="card-title" style="margin-bottom:0">📋 × 👤 Projects × Employee Billable heatmap</div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span style="font-size:11px;color:var(--text3);font-weight:600">직원 정렬:</span>
-        ${sortBtn('heat','bill','Billable 시간')}
-        ${sortBtn('heat','pct','비율')}
-        ${sortBtn('heat','total','총 시간')}
+        <span style="font-size:11px;color:var(--text3);font-weight:600">Employee sort:</span>
+        ${sortBtn('heat','bill','Billable Hours')}
+        ${sortBtn('heat','pct','Ratio')}
+        ${sortBtn('heat','total','Total Hours')}
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text2);margin-bottom:.75rem;flex-wrap:wrap">
       <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#dcfce7;border-radius:2px;display:inline-block"></span>90%+</span>
       <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#d1fae5;border-radius:2px;display:inline-block"></span>70%+</span>
       <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#fef9c3;border-radius:2px;display:inline-block"></span>50%+</span>
-      <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#ffedd5;border-radius:2px;display:inline-block"></span>50% 미만</span>
+      <span style="display:flex;align-items:center;gap:3px"><span style="width:10px;height:10px;background:#ffedd5;border-radius:2px;display:inline-block"></span>50% under</span>
     </div>
     <div style="overflow-x:auto">
       <table style="border-collapse:separate;border-spacing:2px;width:100%">
         <thead><tr>
-          <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text2);padding:0 12px 8px 0;position:sticky;left:0;background:var(--surface);z-index:2;white-space:nowrap;min-width:180px">프로젝트</th>
+          <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text2);padding:0 12px 8px 0;position:sticky;left:0;background:var(--surface);z-index:2;white-space:nowrap;min-width:180px">Projects</th>
           <th style="font-size:11px;font-weight:600;color:var(--text2);padding:0 10px 8px;text-align:right;position:sticky;left:180px;background:var(--surface);z-index:2;white-space:nowrap;border-right:1px solid var(--border)">Bill%</th>
           ${personCols}
         </tr></thead>
         <tbody>${heatRows}</tbody>
       </table>
     </div>
-    <div style="margin-top:.75rem;font-size:11px;color:var(--text3)">셀에 마우스를 올리면 상세 시간 확인 · Billable 시간 기준 상위 15개 프로젝트 표시</div>
+    <div style="margin-top:.75rem;font-size:11px;color:var(--text3)">Hover over cells for details · Top 15 projects by billable hours</div>
   </div>`;
 
-  // ── 9. 직원별 Billable 랭킹 ──
+  // ── 9. Billable ranking by employee ──
   const personBars = personsRank.map(p => {
     const v = personMap[p];
     const pct = v.total > 0 ? v.bill/v.total : 0;
@@ -1977,21 +1977,21 @@ function renderBillableView(data) {
   const personRanking = `
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
-      <div class="card-title" style="margin-bottom:0">📊 직원별 Billable 비율 순위</div>
+      <div class="card-title" style="margin-bottom:0">📊 Employee Billable Ratio Ranking</div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <span style="font-size:11px;color:var(--text3);font-weight:600">정렬:</span>
-        ${sortBtn('rank','bill','Billable 시간')}
-        ${sortBtn('rank','pct','비율')}
-        ${sortBtn('rank','total','총 시간')}
+        <span style="font-size:11px;color:var(--text3);font-weight:600">sort:</span>
+        ${sortBtn('rank','bill','Billable Hours')}
+        ${sortBtn('rank','pct','Ratio')}
+        ${sortBtn('rank','total','Total Hours')}
       </div>
     </div>
     <div style="display:flex;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:0 0 6px;border-bottom:1px solid var(--border);gap:10px">
-      <span style="width:140px;flex-shrink:0">직원</span>
-      <span style="flex:1">팀</span>
-      <span style="flex:2">Billable 비율</span>
-      <span style="width:44px;text-align:right;flex-shrink:0">비율</span>
+      <span style="width:140px;flex-shrink:0">Employee</span>
+      <span style="flex:1">Team</span>
+      <span style="flex:2">Billable Ratio</span>
+      <span style="width:44px;text-align:right;flex-shrink:0">Ratio</span>
       <span style="width:72px;text-align:right;flex-shrink:0">Billable</span>
-      <span style="width:52px;text-align:right;flex-shrink:0">총계</span>
+      <span style="width:52px;text-align:right;flex-shrink:0">Grand total</span>
     </div>
     ${personBars}
   </div>`;
@@ -2001,13 +2001,13 @@ function renderBillableView(data) {
 
 // ── PROJECT VIEW ───────────────────────────────────────────
 let _projCatFilter = 'all';
-let _projPeopleData = {}; // 프로젝트별 인원 상세 데이터 저장
+let _projPeopleData = {}; // Store member detail data by project
 
 function renderProjectView(data) {
   const el = document.getElementById('project-content');
   const tabsEl = document.getElementById('proj-cat-tabs');
   if (!data || !data.length) {
-    el.innerHTML = '<div class="empty">데이터를 업로드하세요.</div>';
+    el.innerHTML = '<div class="empty">Please upload data.</div>';
     tabsEl.innerHTML = '';
     return;
   }
@@ -2023,7 +2023,7 @@ function renderProjectView(data) {
     pm[k].people.add(d.Name);
     pm[k].jobCodes.add(d['Job Code']);
 
-    // 인원별 시간 누적
+    // by member Hours cumulative
     if (!_projPeopleData[k]) _projPeopleData[k] = {};
     if (!_projPeopleData[k][d.Name]) _projPeopleData[k][d.Name] = { total:0, bill:0 };
     _projPeopleData[k][d.Name].total += d.Hours;
@@ -2035,7 +2035,7 @@ function renderProjectView(data) {
   // Group projects by category
   const catGroups = {};
   Object.entries(pm).forEach(([name, v]) => {
-    const cat = getCat('', [...v.jobCodes][0]) || { code:'기타', name:'기타', color:'#888780', bg:'#f1f0ec', border:'#d3d1c7' };
+    const cat = getCat('', [...v.jobCodes][0]) || { code:'Other', name:'Other', color:'#888780', bg:'#f1f0ec', border:'#d3d1c7' };
     if (!catGroups[cat.code]) catGroups[cat.code] = { cat, projects:[], total:0 };
     catGroups[cat.code].projects.push([name, v]);
     catGroups[cat.code].total += v.total;
@@ -2045,14 +2045,16 @@ function renderProjectView(data) {
 
   // Build tabs
   const tabsHTML = [
-    `<button class="proj-cat-tab ${_projCatFilter==='all'?'active':''}" onclick="setProjCatFilter('all')" style="${_projCatFilter==='all'?'background:var(--surface2);color:var(--text);border-color:var(--border);font-weight:600;':''}">전체</button>`,
+    `<button class="proj-cat-tab ${_projCatFilter==='all'?'active':''}" onclick="setProjCatFilter('all')" style="${_projCatFilter==='all'?'background:var(--surface2);color:var(--text);border-color:var(--border);font-weight:600;':''}">All</button>`,
     ...sortedGroups.map(g => {
       const isActive = _projCatFilter === g.cat.code;
       const s = isActive
         ? `background:${g.cat.bg};color:${g.cat.color};border-color:${g.cat.border};font-weight:600;`
         : `background:${g.cat.bg};color:${g.cat.color};border-color:${g.cat.border};opacity:0.75;`;
       const shortName = g.cat.name.replace(/\s*\(.*?\)/g,'').trim();
-      const label = g.cat.code === shortName ? g.cat.code : `${g.cat.code} ${shortName}`;
+      const label = g.cat.code === shortName
+        ? `<strong>${g.cat.code}</strong>`
+        : `<strong>${g.cat.code}</strong> ${shortName}`;
       return `<button class="proj-cat-tab${isActive?' active':''}" onclick="setProjCatFilter('${g.cat.code}')" style="${s}">${label}</button>`;
     })
   ].join('');
@@ -2071,7 +2073,7 @@ function renderProjectView(data) {
       const billPct = v.total > 0 ? Math.round(v.bill/v.total*100) : 0;
       const safeId = 'pp_' + name.replace(/[^a-zA-Z0-9]/g,'_');
 
-      // 인원 상세 rows
+      // Member detail rows
       const peopleRows = Object.entries(_projPeopleData[name]||{})
         .sort((a,b)=>b[1].total-a[1].total)
         .map(([pName, pv]) => {
@@ -2085,17 +2087,17 @@ function renderProjectView(data) {
             </div>
             <div class="proj-person-stats">
               <span class="proj-person-hours" style="color:${cat.color}">${pv.total.toFixed(1)}h</span>
-              <span class="proj-person-bill">청구 ${pBillPct}%</span>
+              <span class="proj-person-bill">billable ${pBillPct}%</span>
             </div>
           </div>`;
         }).join('');
 
       return `<div class="proj-item-wrap">
         <div class="proj-item" onclick="toggleProjPeople('${safeId}')" style="cursor:pointer">
-          <button class="proj-arrow-btn" id="icon_${safeId}" title="투입 인원 보기">▶</button>
+          <button class="proj-arrow-btn" id="icon_${safeId}" title="View members">▶</button>
           <div class="proj-item-info" style="flex:1">
             <div class="proj-item-name">${name.length>35?name.slice(0,35)+'…':name}</div>
-            <div class="proj-item-sub">${v.people.size}명 투입 · 청구 ${billPct}%</div>
+            <div class="proj-item-sub">${v.people.size}members · Billable ${billPct}%</div>
           </div>
           <div class="proj-item-right">
             <div class="proj-item-hours">${v.total.toFixed(1)}h</div>
@@ -2103,7 +2105,7 @@ function renderProjectView(data) {
           </div>
         </div>
         <div class="proj-people-panel" id="${safeId}" style="display:none">
-          <div class="proj-people-header">투입 인원 상세</div>
+          <div class="proj-people-header">Member details</div>
           ${peopleRows}
         </div>
       </div>`;
@@ -2119,7 +2121,7 @@ function renderProjectView(data) {
         <div class="proj-group-left">
           <button class="proj-arrow-btn ${arrowClass}" id="grpicon_${groupId}" style="color:${cat.color}">▶</button>
           <span class="proj-group-badge" style="background:${cat.color}18;color:${cat.color};border:1px solid ${cat.color}44">● ${cat.code}</span>
-          <span class="proj-group-count" style="color:var(--text2)">${projects.length}개 프로젝트</span>
+          <span class="proj-group-count" style="color:var(--text2)">${projects.length} projects</span>
         </div>
         <div class="proj-group-right">
           <span class="proj-group-hours" style="color:${cat.color}">${groupTotal.toFixed(1)}h</span>
@@ -2132,7 +2134,7 @@ function renderProjectView(data) {
     </div>`;
   }).join('');
 
-  el.innerHTML = groupsHTML || '<div class="empty">해당 대분류의 프로젝트가 없습니다.</div>';
+  el.innerHTML = groupsHTML || '<div class="empty">No projects in this category.</div>';
 }
 
 function toggleGroup(id) {
@@ -2158,7 +2160,7 @@ function setProjCatFilter(code) {
   renderProjectView(filteredData);
 }
 
-// ── NAME ALIAS (동일인물 이름 통일) ──────────────────────────
+// ── NAME ALIAS (Name alias normalization)
 const NAME_ALIAS = {
   'Li, Jessy':           'Li, Jiaqi (Jessy)',
   'Li, Jiaqi':           'Li, Jiaqi (Jessy)',
@@ -2174,7 +2176,7 @@ function normalizeName(name) {
   return NAME_ALIAS[n] || n;
 }
 
-// ── TEAM MAP (실제 조직 구조 기반) ───────────────────────────
+// ── TEAM MAP (Based on actual org structure)──
 const TEAM_MAP = {
   'Regulatory Affairs': {
     color: '#2563EB', bg: '#eff6ff', border: '#93c5fd', icon: '⚖️',
@@ -2220,17 +2222,17 @@ function getTeam(name) {
   for (const [team, info] of Object.entries(TEAM_MAP)) {
     if (info.members.includes(name)) return { team, ...info };
   }
-  return { team: '기타', color: '#9CA3AF', bg: '#f3f4f6', border: '#e5e7eb', icon: '👤', members: [] };
+  return { team: 'Other', color: '#9CA3AF', bg: '#f3f4f6', border: '#e5e7eb', icon: '👤', members: [] };
 }
 
-// ── TEAM VIEW (실제 조직 구조 기반) ─────────────────────────
+// ── TEAM VIEW (Based on actual org structure)
 function renderTeamView(data) {
   const el = document.getElementById('teamview-content');
-  if (!data || !data.length) { el.innerHTML = '<div class="empty">데이터를 업로드하세요.</div>'; return; }
+  if (!data || !data.length) { el.innerHTML = '<div class="empty">Please upload data.</div>'; return; }
 
   const total = data.reduce((s,d)=>s+d.Hours,0);
 
-  // 1. TEAM_MAP 기반으로 모든 팀·직원을 0h로 초기화 (데이터 없어도 항상 표시)
+  // 1. Initialize all teams/employees to 0h from TEAM_MAP (always shown)
   const teamData = {};
   Object.entries(TEAM_MAP).forEach(([teamName, info]) => {
     teamData[teamName] = { info: {...info, team: teamName}, total:0, bill:0, people:{}, projects: new Set(), tasks:{} };
@@ -2238,10 +2240,10 @@ function renderTeamView(data) {
       teamData[teamName].people[m] = { total:0, bill:0 };
     });
   });
-  // 기타 팀 (TEAM_MAP에 없는 직원)
-  teamData['기타'] = { info:{team:'기타',color:'#9CA3AF',bg:'#f3f4f6',border:'#e5e7eb',icon:'👤',members:[]}, total:0, bill:0, people:{}, projects: new Set(), tasks:{} };
+  // Other team (employees not in TEAM_MAP)
+  teamData['Other'] = { info:{team:'Other',color:'#9CA3AF',bg:'#f3f4f6',border:'#e5e7eb',icon:'👤',members:[]}, total:0, bill:0, people:{}, projects: new Set(), tasks:{} };
 
-  // 2. 실제 데이터 집계
+  // 2. Aggregate actual data
   data.forEach(d => {
     const t = getTeam(d.Name);
     const key = t.team;
@@ -2256,12 +2258,12 @@ function renderTeamView(data) {
     teamData[key].tasks[task] = (teamData[key].tasks[task]||0) + d.Hours;
   });
 
-  // 기타 팀이 비어있으면 제거
-  if (Object.keys(teamData['기타'].people).length === 0 && teamData['기타'].total === 0) {
-    delete teamData['기타'];
+  // Other team if empty remove
+  if (Object.keys(teamData['Other'].people).length === 0 && teamData['Other'].total === 0) {
+    delete teamData['Other'];
   }
 
-  // TEAM_MAP 순서 유지하되 시간 많은 순 정렬
+  // Maintain TEAM_MAP order, sort by hours desc
   const sorted = Object.entries(teamData).sort((a,b)=>b[1].total-a[1].total);
 
   el.innerHTML = '<div class="charts-grid">' + sorted.map(([teamName, v]) => {
@@ -2271,7 +2273,10 @@ function renderTeamView(data) {
     const topTasks = Object.entries(v.tasks).sort((a,b)=>b[1]-a[1]).slice(0,3);
     const maxH = topPeople[0]?.[1]?.total || 1;
     const activePeople = topPeople.filter(([,p])=>p.total>0);
-    const stdH = Math.max(1, [...new Set(filteredData.map(d => getISOWeek(d.dateStr)))].length) * 40;
+    // 기준 시간: 데이터에 있는 날짜 중 월~금(영업일) 수 × 8h
+    const workDays = [...new Set(filteredData.map(d => d.dateStr))]
+      .filter(ds => { const dow = new Date(ds + 'T12:00:00').getDay(); return dow >= 1 && dow <= 5; }).length;
+    const stdH = Math.max(1, workDays) * 8;
     function statusPill(hours) {
       if (!hours) return '';
       if (hours > stdH) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FCEBEB;color:#A32D2D;flex-shrink:0">Over</span>`;
@@ -2283,24 +2288,24 @@ function renderTeamView(data) {
         <div style="width:38px;height:38px;border-radius:10px;background:${v.info.color}20;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${v.info.icon}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;color:${v.info.color}">${teamName}</div>
-          <div style="font-size:11px;color:var(--text3)">${topPeople.length}명 · ${v.projects.size}개 프로젝트</div>
+          <div style="font-size:11px;color:var(--text3)">${topPeople.length} members · ${v.projects.size} projects</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:20px;font-weight:800;color:var(--text)">${v.total.toFixed(1)}h</div>
-          <div style="font-size:10px;color:var(--text3)">전체 ${pct}%</div>
+          <div style="font-size:10px;color:var(--text3)">All ${pct}%</div>
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:1rem">
         <div style="flex:1;background:${v.info.bg};border:1px solid ${v.info.border};border-radius:6px;padding:.5rem;text-align:center">
           <div style="font-size:18px;font-weight:800;color:${v.info.color}">${billPct}%</div>
-          <div style="font-size:10px;color:var(--text2)">청구 가능</div>
+          <div style="font-size:10px;color:var(--text2)">Billable</div>
         </div>
         <div style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:.5rem;text-align:center">
           <div style="font-size:18px;font-weight:800;color:var(--text)">${v.bill.toFixed(1)}h</div>
-          <div style="font-size:10px;color:var(--text2)">청구 시간</div>
+          <div style="font-size:10px;color:var(--text2)">billable Hours</div>
         </div>
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">직원별 투입</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Hours by Employee</div>
       ${topPeople.map(([n,v2])=>{
         const barW=maxH>0?Math.round(v2.total/maxH*100):0;
         const personFullName=n;
@@ -2316,7 +2321,7 @@ function renderTeamView(data) {
           </div>
         </div>`;
       }).join('')}
-      ${topTasks.length?`<div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 5px">주요 태스크</div>
+      ${topTasks.length?`<div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin:8px 0 5px">key Task</div>
       ${topTasks.map(([t,h])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid var(--border2)">
         <span style="color:var(--text2)">${t.length>24?t.slice(0,24)+'\u2026':t}</span>
         <span style="font-weight:700">${h.toFixed(1)}h</span>
@@ -2342,12 +2347,12 @@ function renderOverview(data) {
     options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h` } } } }
   });
 
-  // Billable vs Non-billable — granularity별 다른 집계
+  // Billable vs Non-billable — aggregate by granularity
   let billLabels, billData, nonBillData;
 
   if (granularity === 'week') {
-    // 주별: 선택된 주 기준 ±2주 = 총 5개 고정
-    // allData 기준으로 집계 (날짜 필터 무관하게 앞뒤 주 데이터 포함)
+    // Weekly: center week ±2 weeks = 5 fixed bars
+    // Aggregate from allData (includes adjacent weeks regardless of date filter)
     const weekMapBill = {}, weekMapNon = {};
     allData.forEach(d => {
       const w = getGroupKey(d.dateStr);
@@ -2355,11 +2360,11 @@ function renderOverview(data) {
       else weekMapNon[w] = (weekMapNon[w]||0) + d.Hours;
     });
 
-    // 선택된 주 (activeDate가 주 key이면 사용, 아니면 최근 주)
+    // Selected week (use activeDate if week key, otherwise latest)
     const allWeeks = [...new Set(allData.map(d => getGroupKey(d.dateStr)))].sort();
     let centerWeek = (activeDate !== 'all' && /W\d+/.test(activeDate)) ? activeDate : allWeeks[allWeeks.length-1];
 
-    // ISO week ±N주 계산
+    // ISO week ±N weeks calculation
     function addISOWeeks(weekKey, delta) {
       const [yearStr, wStr] = weekKey.split('-W');
       const year = parseInt(yearStr), w = parseInt(wStr);
@@ -2371,19 +2376,19 @@ function renderOverview(data) {
     }
 
     const fiveWeeks = [-2,-1,0,1,2].map(d => addISOWeeks(centerWeek, d));
-    billLabels  = fiveWeeks.map(w => { const wn=parseInt(w.split('-W')[1]); return `${wn}주차`; });
+    billLabels  = fiveWeeks.map(w => { const wn=parseInt(w.split('-W')[1]); return `${wn}W`; });
     billData    = fiveWeeks.map(w => +((weekMapBill[w]||0).toFixed(1)));
     nonBillData = fiveWeeks.map(w => +((weekMapNon[w]||0).toFixed(1)));
 
   } else if (granularity === 'month') {
-    // 전체 데이터에서 월별 집계 (allData 기준 — 필터와 무관하게 모든 월 파악)
+    // Monthly aggregate from allData (all months, filter-independent)
     const monthMapAll = {}, nonMonthMapAll = {};
     allData.forEach(d => {
       const m = d.dateStr.slice(0, 7);
       if (d.isBillable) monthMapAll[m] = (monthMapAll[m]||0) + d.Hours;
       else nonMonthMapAll[m] = (nonMonthMapAll[m]||0) + d.Hours;
     });
-    // filteredData 기준 집계
+    // filteredData Standard aggregation
     const monthMap = {}, nonMonthMap = {};
     data.forEach(d => {
       const m = d.dateStr.slice(0, 7);
@@ -2391,13 +2396,13 @@ function renderOverview(data) {
       else nonMonthMap[m] = (nonMonthMap[m]||0) + d.Hours;
     });
 
-    // 선택된 월 기준 ±2개월 = 5개 고정. activeDate==='all'이면 최근 5개월
+    // Center month ±2 months = 5 fixed. activeDate==='all'→ use latest month
     const allMonths = [...new Set(Object.keys(monthMapAll).concat(Object.keys(nonMonthMapAll)))].sort();
     let centerMonth = activeDate !== 'all' ? activeDate : allMonths[allMonths.length - 1];
-    // centerMonth가 "YYYY-MM" 형식인지 확인 (주별 key가 들어올 수 있으므로)
+    // Validate centerMonth is "YYYY-MM" format (week key may be passed)
     if (!/^\d{4}-\d{2}$/.test(centerMonth)) centerMonth = allMonths[allMonths.length - 1];
 
-    // ±2개월 생성 (데이터 유무 무관하게 고정 5개)
+    // Generate ±2 months (fixed 5, regardless of data availability)
     function addMonths(ym, delta) {
       let [y, m] = ym.split('-').map(Number);
       m += delta;
@@ -2407,19 +2412,19 @@ function renderOverview(data) {
     }
     const fiveMonths = [-2,-1,0,1,2].map(d => addMonths(centerMonth, d));
 
-    billLabels  = fiveMonths.map(m => { const [,mo]=m.split('-'); return `${parseInt(mo)}월`; });
+    billLabels  = fiveMonths.map(m => { const [,mo]=m.split('-'); return `${parseInt(mo)}`; });
     billData    = fiveMonths.map(m => +((monthMap[m]||0).toFixed(1)));
     nonBillData = fiveMonths.map(m => +((nonMonthMap[m]||0).toFixed(1)));
 
   } else {
-    // 기간(day): 선택된 날짜 기준 ±2일 = 총 5개 고정
+    // Day mode: center date ±2 days = 5 fixed bars
     const dayMapBill = {}, dayMapNon = {};
     allData.forEach(d => {
       if (d.isBillable) dayMapBill[d.dateStr] = (dayMapBill[d.dateStr]||0) + d.Hours;
       else dayMapNon[d.dateStr] = (dayMapNon[d.dateStr]||0) + d.Hours;
     });
     const allDays = [...new Set(allData.map(d => d.dateStr))].sort();
-    // 선택된 날짜 (activeDate가 날짜면 사용, 아니면 가장 최근)
+    // Use activeDate if it is a date string, otherwise use latest
     let centerDay = (activeDate !== 'all' && /^\d{4}-\d{2}-\d{2}$/.test(activeDate))
       ? activeDate : allDays[allDays.length - 1];
 
@@ -2440,8 +2445,8 @@ function renderOverview(data) {
     data: {
       labels: billLabels,
       datasets: [
-        { label: '청구 가능', data: billData,    backgroundColor: '#378ADDcc', borderWidth: 0 },
-        { label: '청구 불가', data: nonBillData, backgroundColor: '#88878066', borderWidth: 0 }
+        { label: 'Billable', data: billData,    backgroundColor: '#378ADDcc', borderWidth: 0 },
+        { label: 'Non-billable', data: nonBillData, backgroundColor: '#88878066', borderWidth: 0 }
       ]
     },
     options: {
@@ -2512,7 +2517,7 @@ function renderOverview(data) {
       data: {
         labels: trendLabels,
         datasets: [{
-          label: '총 투입 시간',
+          label: 'Total hours',
           data: trendGroups.map(g => +trendByGroup[g].toFixed(1)),
           borderColor: COLORS[0],
           backgroundColor: COLORS[0] + '18',
@@ -2537,7 +2542,7 @@ function renderOverview(data) {
 // ── COMPARE ────────────────────────────────────────────────
 function renderCompare() {
   const el = document.getElementById('compare-content');
-  if (dateKeys.length < 2) { el.innerHTML = '<div class="empty">비교할 날짜가 2개 이상 필요합니다.<br>파일을 더 업로드해주세요.</div>'; return; }
+  if (dateKeys.length < 2) { el.innerHTML = '<div class="empty">Need at least 2 date groups to compare.<br>Please upload more files.</div>'; return; }
 
   const d1 = dateKeys[0], d2 = dateKeys[dateKeys.length - 1];
   const g1 = allData.filter(d => d.dateStr === d1), g2 = allData.filter(d => d.dateStr === d2);
@@ -2585,7 +2590,7 @@ function renderCompare() {
 }
 
 // ── PEOPLE ─────────────────────────────────────────────────
-// 직원 목록 전역 상태
+// Employee list global status
 let _peopleListData = [];
 let _selectedPerson = null;
 
@@ -2601,7 +2606,7 @@ function renderPeople(data) {
     name, hours: pm[name] || 0, team: getTeam(name)
   })).sort((a,b) => b.hours - a.hours);
 
-  document.getElementById('people-count').textContent = `${Object.keys(pm).length}명`;
+  document.getElementById('people-count').textContent = `${Object.keys(pm).length} people`;
   filterPeopleList();
 
   const withData = window._peopleAll.filter(p => p.hours > 0);
@@ -2650,7 +2655,7 @@ function openPersonDetail(name) {
   const panel = document.getElementById('people-detail-panel');
 
   if (!useData.length) {
-    panel.innerHTML = '<div class="card" style="text-align:center;padding:3rem;color:var(--text3)">데이터 없음</div>';
+    panel.innerHTML = '<div class="card" style="text-align:center;padding:3rem;color:var(--text3)">No data</div>';
     return;
   }
 
@@ -2659,12 +2664,12 @@ function openPersonDetail(name) {
   const pts2 = name.split(', ');
   const initials2 = pts2.length>1?(pts2[1][0]+pts2[0][0]).toUpperCase():name.slice(0,2).toUpperCase();
 
-  // 카테고리별 집계
+  // Aggregation by category
   const catMap = {};
   useData.forEach(d => {
     const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
     const code = cat?cat.code:'ETC';
-    const label = cat?cat.code:'기타';
+    const label = cat?cat.code:'Other';
     const color = cat?cat.color:'#9CA3AF';
     const bg = cat?cat.bg:'#f3f4f6';
     if (!catMap[code]) catMap[code] = {code,label,color,bg,h:0};
@@ -2672,9 +2677,9 @@ function openPersonDetail(name) {
   });
   const catEntries = Object.values(catMap).sort((a,b)=>b.h-a.h);
 
-  // 태스크별 요일 집계
+  // Aggregate tasks by day of week
   const taskMap = {};
-  const DAY_KEYS = ['월','화','수','목','금','토','일'];
+  const DAY_KEYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   useData.forEach(d => {
     const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
     const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
@@ -2728,7 +2733,7 @@ function openPersonDetail(name) {
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:.875rem 1rem">
-        <div style="font-size:11px;color:#166534;font-weight:600;margin-bottom:.25rem">기간 합계</div>
+        <div style="font-size:11px;color:#166534;font-weight:600;margin-bottom:.25rem">Range Total</div>
         <div style="font-size:24px;font-weight:800;color:#15803d">${totalH.toFixed(1)}h</div>
         <div style="height:3px;background:#dcfce7;border-radius:99px;margin-top:.5rem"><div style="height:100%;width:100%;background:#16a34a;border-radius:99px"></div></div>
       </div>
@@ -2736,18 +2741,18 @@ function openPersonDetail(name) {
     </div>
   </div>
   <div class="card">
-    <div class="card-title" style="margin-bottom:.875rem">요일별 상세</div>
+    <div class="card-title" style="margin-bottom:.875rem">By day of week</div>
     <div style="overflow-x:auto">
       <table style="width:100%;border-collapse:collapse;font-size:12px">
         <thead><tr style="border-bottom:2px solid var(--border)">
-          <th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600;width:70px">대분류</th>
-          <th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600">하위코드</th>
+          <th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600;width:70px">Category</th>
+          <th style="text-align:left;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600">Subcode</th>
           ${dayHeaders}
-          <th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600;min-width:52px">합계</th>
+          <th style="text-align:right;padding:6px 8px;font-size:11px;color:var(--text2);font-weight:600;min-width:52px">Total</th>
         </tr></thead>
         <tbody>${taskRowsHtml}</tbody>
         <tfoot><tr style="border-top:2px solid var(--border);background:var(--surface2)">
-          <td colspan="2" style="padding:6px 8px;font-weight:700;font-size:12px">합계</td>
+          <td colspan="2" style="padding:6px 8px;font-weight:700;font-size:12px">Total</td>
           ${footCells}
           <td style="text-align:right;padding:6px 8px;font-weight:800;color:var(--text)">${totalH.toFixed(1)}h</td>
         </tr></tfoot>
@@ -2770,12 +2775,12 @@ function openPersonModal(name) {
   const billPct = totalH > 0 ? Math.round(billableH / totalH * 100) : 0;
 
   document.getElementById('modal-person-name').textContent = name;
-  document.getElementById('modal-person-sub').textContent = `총 ${data.length}건의 기록`;
+  document.getElementById('modal-person-sub').textContent = `${data.length} records`;
 
   document.getElementById('modal-stats').innerHTML = `
-    <div class="modal-stat"><div class="modal-stat-val">${totalH.toFixed(1)}h</div><div class="modal-stat-lbl">총 투입 시간</div></div>
-    <div class="modal-stat"><div class="modal-stat-val">${billPct}%</div><div class="modal-stat-lbl">청구 가능 비율</div></div>
-    <div class="modal-stat"><div class="modal-stat-val">${sponsors}</div><div class="modal-stat-lbl">스폰서 수</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">${totalH.toFixed(1)}h</div><div class="modal-stat-lbl">Total hours</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">${billPct}%</div><div class="modal-stat-lbl">Billable Ratio</div></div>
+    <div class="modal-stat"><div class="modal-stat-val">${sponsors}</div><div class="modal-stat-lbl">Sponsors</div></div>
   `;
 
   // Destroy previous modal charts
@@ -2854,12 +2859,12 @@ function closeModal(e) {
 
 // ── DETAIL TABLE ───────────────────────────────────────────
 const DET_COLS = [
-  { key: 'dateStr', label: '날짜' },
-  { key: 'Name', label: '직원' },
-  { key: 'Sponsor Name', label: '스폰서' },
-  { key: 'Project Name', label: '프로젝트' },
-  { key: 'Task', label: '태스크' },
-  { key: 'Hours', label: '시간' }
+  { key: 'dateStr', label: 'Date' },
+  { key: 'Name', label: 'Employee' },
+  { key: 'Sponsor Name', label: 'Sponsor' },
+  { key: 'Project Name', label: 'Projects' },
+  { key: 'Task', label: 'Task' },
+  { key: 'Hours', label: 'Hours' }
 ];
 
 function renderDetail(data) {
@@ -2871,7 +2876,7 @@ function renderDetail(data) {
   const people = [...new Set(data.map(d => d.Name))].sort();
   const sel = document.getElementById('det-person-filter');
   const prev = sel.value;
-  sel.innerHTML = '<option value="">👤 전체 직원</option>' +
+  sel.innerHTML = '<option value="">👤 All Employee</option>' +
     people.map(p => `<option value="${p}"${p === prev ? ' selected' : ''}>${p}</option>`).join('');
   detailPersonFilter = sel.value;
 
@@ -2929,11 +2934,11 @@ function filterDetailTable() {
   if (detailPersonFilter) {
     tagEl.style.display = 'block';
     tagEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)">
-      직원 필터:
+      Employee filter:
       <div class="filter-tag">👤 ${detailPersonFilter}
         <button class="filter-tag-remove" onclick="clearDetailPersonFilter()">×</button>
       </div>
-      <span style="color:var(--text3)">(${detailTableData.filter(d=>d.Name===detailPersonFilter).length}건)</span>
+      <span style="color:var(--text3)">(${detailTableData.filter(d=>d.Name===detailPersonFilter).length} records)</span>
     </div>`;
   } else {
     tagEl.style.display = 'none';
@@ -2990,7 +2995,7 @@ function renderDetailPage() {
 
   const slice = data.slice((detailPage - 1) * DETAIL_PAGE_SIZE, detailPage * DETAIL_PAGE_SIZE);
 
-  document.getElementById('detail-count').textContent = `총 ${total}건`;
+  document.getElementById('detail-count').textContent = `Total: ${total} records`;
 
   document.getElementById('det-body').innerHTML = slice.map(d => '<tr>' + DET_COLS.map(c => {
     if (c.key === 'Hours') return `<td class="td-num">${d.Hours.toFixed(1)}h</td>`;
@@ -3021,7 +3026,7 @@ function renderDetailPage() {
   }
 
   document.getElementById('pagination').innerHTML = `
-    <div style="color:var(--text2)">${(detailPage-1)*DETAIL_PAGE_SIZE+1}–${Math.min(detailPage*DETAIL_PAGE_SIZE, total)} / 총 ${total}건</div>
+    <div style="color:var(--text2)">${(detailPage-1)*DETAIL_PAGE_SIZE+1}–${Math.min(detailPage*DETAIL_PAGE_SIZE, total)} / Total: ${total} records</div>
     <div class="page-btns">
       <button class="page-btn" onclick="gotoPage(1)" ${detailPage === 1 ? 'disabled' : ''}>«</button>
       <button class="page-btn" onclick="gotoPage(${detailPage-1})" ${detailPage === 1 ? 'disabled' : ''}>‹</button>
@@ -3042,7 +3047,7 @@ const CAT_ICONS = {
 
 function renderTaskMap(data) {
   if (!data || data.length === 0) {
-    document.getElementById('taskmap-content').innerHTML = '<div class="empty">데이터를 업로드하면 태스크 분류가 표시됩니다.</div>';
+    document.getElementById('taskmap-content').innerHTML = '<div class="empty">Upload data to view the Task Map.</div>';
     return;
   }
 
@@ -3086,9 +3091,9 @@ function renderTaskMap(data) {
             <div class="taskmap-code" style="color:${cat.color}">${cat.code}</div>
             <div class="taskmap-name">${cat.name}</div>
           </div>
-          <div class="taskmap-meta">데이터 없음</div>
+          <div class="taskmap-meta">No data</div>
         </div>
-        <div class="taskmap-tasks"><div class="taskmap-empty">이 기간에 해당 태스크 없음</div></div>
+        <div class="taskmap-tasks"><div class="taskmap-empty">No tasks in this period</div></div>
       </div>`;
     }
 
@@ -3116,7 +3121,7 @@ function renderTaskMap(data) {
         <div class="taskmap-icon" style="background:${cat.color}22">${CAT_ICONS[cat.code] || '📁'}</div>
         <div style="min-width:0">
           <div class="taskmap-code" style="color:${cat.color}">${cat.code} · ${cat.name}</div>
-          <div style="font-size:11px;color:var(--text2);margin-top:1px">${group.tasks.length}개 태스크 · ${catTotal.toFixed(1)}h</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:1px">${group.tasks.length} tasks · ${catTotal.toFixed(1)}h</div>
         </div>
         <div class="taskmap-meta" style="color:${cat.color};font-weight:700">${catPct}%</div>
       </div>
@@ -3129,7 +3134,7 @@ function renderTaskMap(data) {
   if (unmatched.length > 0) {
     unmatched.sort((a, b) => b.hours - a.hours);
     unmatchedHtml = `<div class="taskmap-unmatched">
-      <div class="taskmap-unmatched-title">⚠️ 미분류 태스크 (${unmatched.length}개) — 아래 태스크는 대분류에 자동 매핑되지 않았습니다</div>
+      <div class="taskmap-unmatched-title">⚠️ Unclassified Task (${unmatched.length}) — The following tasks were not automatically mapped not found</div>
       <div class="taskmap-unmatched-tags">${unmatched.map(t =>
         `<span class="taskmap-unmatched-tag" onclick="jumpToTask('${t.name.replace(/'/g,"\'")}')">
           ${t.name} <strong>${t.hours.toFixed(1)}h</strong>
@@ -3176,7 +3181,7 @@ function printReport() {
     if (detailSortCol === 'Hours') return detailSortAsc ? av - bv : bv - av;
     return detailSortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
   });
-  if (!data || data.length === 0) { alert('출력할 데이터가 없습니다.'); return; }
+  if (!data || data.length === 0) { alert('No data to print.'); return; }
 
   const totalH    = data.reduce((s, d) => s + d.Hours, 0);
   const billableH = data.filter(d => d.isBillable).reduce((s, d) => s + d.Hours, 0);
@@ -3185,17 +3190,17 @@ function printReport() {
   const people    = [...new Set(data.map(d => d.Name))];
   const dateRange = (() => { const ds = data.map(d => d.dateStr).sort(); return ds[0] === ds[ds.length-1] ? ds[0] : `${ds[0]} ~ ${ds[ds.length-1]}`; })();
 
-  // 초과근무
+  // overtime
   const personHoursMap = {};
   data.forEach(d => { personHoursMap[d.Name] = (personHoursMap[d.Name]||0) + d.Hours; });
   const weekCount = Math.max(1, [...new Set(data.map(d => getISOWeek(d.dateStr)))].length);
   const overtimeH = Object.values(personHoursMap).reduce((s, h) => s + Math.max(0, h - weekCount * 40), 0);
 
-  // 제출률
+  // Submission rate
   const totalMembers = Object.values(TEAM_MAP).reduce((s, t) => s + t.members.length, 0);
   const submitPct = totalMembers > 0 ? Math.round(people.length / totalMembers * 100) : 100;
 
-  // 이전 기간 대비 델타 (전체 allData에서)
+  // previous Range vs delta (All allDatafrom)
   const groups = [...new Set(dateKeys.map(k => getGroupKey(k)))].sort();
   let totalDeltaHtml = '', otDeltaHtml = '';
   if (granularity !== 'all' && groups.length >= 2) {
@@ -3209,7 +3214,7 @@ function printReport() {
       const up = pct >= 0;
       totalDeltaHtml = `<span style="font-size:11px;font-weight:600;color:${up?'#1a6640':'#7a1c1c'}">${up?'↗':'↘'} ${up?'+':''}${pct}% vs last period</span>`;
     }
-    // 초과근무 델타
+    // overtime delta
     const prevPH = {};
     allData.filter(d=>getGroupKey(d.dateStr)===prevGrp).forEach(d=>{ prevPH[d.Name]=(prevPH[d.Name]||0)+d.Hours; });
     const wkPrev = Math.max(1,[...new Set(allData.filter(d=>getGroupKey(d.dateStr)===prevGrp).map(d=>getISOWeek(d.dateStr)))].length);
@@ -3221,7 +3226,7 @@ function printReport() {
     }
   }
 
-  // 직원별
+  // By employee
   const byPerson = {};
   data.forEach(d => {
     if (!byPerson[d.Name]) byPerson[d.Name] = { total: 0, billable: 0 };
@@ -3231,12 +3236,12 @@ function printReport() {
   const personsSorted = Object.entries(byPerson).sort((a,b) => b[1].total - a[1].total);
   const avgH = people.length > 0 ? totalH / people.length : 0;
 
-  // 스폰서별
+  // By sponsor
   const bySponsor = {};
   data.forEach(d => { bySponsor[d['Sponsor Name']] = (bySponsor[d['Sponsor Name']]||0) + d.Hours; });
   const sponsorData = Object.entries(bySponsor).sort((a,b) => b[1]-a[1]).slice(0, 8);
 
-  // 날짜 그룹별 (±2 고정 5개)
+  // By date group (±2, fixed 5 bars)
   let chartLabels, chartBill, chartNon;
   if (granularity === 'week') {
     const wMapB = {}, wMapN = {};
@@ -3245,7 +3250,7 @@ function printReport() {
     let cw = (activeDate!=='all'&&/W\d+/.test(activeDate))?activeDate:allWks[allWks.length-1];
     function addW(wk,delta){ const[y,w]=wk.split('-W').map(Number); const j4=new Date(y,0,4); const mo=new Date(j4); mo.setDate(j4.getDate()-((j4.getDay()||7)-1)+(w-1)*7+delta*7); return getISOWeek(mo.toISOString().slice(0,10)); }
     const five=[-2,-1,0,1,2].map(d=>addW(cw,d));
-    chartLabels=five.map(w=>`${parseInt(w.split('-W')[1])}주차`);
+    chartLabels=five.map(w=>`${parseInt(w.split('-W')[1])}W`);
     chartBill=five.map(w=>+((wMapB[w]||0).toFixed(1)));
     chartNon =five.map(w=>+((wMapN[w]||0).toFixed(1)));
   } else if (granularity === 'month') {
@@ -3256,7 +3261,7 @@ function printReport() {
     if(!/^\d{4}-\d{2}$/.test(cm)) cm=allMs[allMs.length-1];
     function addM(ym,d){ let[y,m]=ym.split('-').map(Number); m+=d; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return `${y}-${String(m).padStart(2,'0')}`; }
     const five=[-2,-1,0,1,2].map(d=>addM(cm,d));
-    chartLabels=five.map(m=>`${parseInt(m.split('-')[1])}월`);
+    chartLabels=five.map(m=>`${parseInt(m.split('-')[1])}`);
     chartBill=five.map(m=>+((mMapB[m]||0).toFixed(1)));
     chartNon =five.map(m=>+((mMapN[m]||0).toFixed(1)));
   } else {
@@ -3271,10 +3276,10 @@ function printReport() {
     chartNon =five.map(d=>+((dMapN[d]||0).toFixed(1)));
   }
 
-  const printDate = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+  const printDate = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
 
-  // 팀 멤버 테이블 — 기준: 주 40h (1일 8h)
-  const stdHours = weekCount * 40; // 기간 내 주 수 × 40h
+  // Team member table — Standard: 40h/week (8h/day)
+  const stdHours = weekCount * 40; // weeks in period × 40h
   const memberRows = personsSorted.map(([name, v]) => {
     const bPct = v.total > 0 ? Math.round(v.billable / v.total * 100) : 0;
     const diff = +(v.total - stdHours).toFixed(1);
@@ -3298,14 +3303,14 @@ function printReport() {
   }).join('');
 
   const html = `<!DOCTYPE html><html lang="ko"><head>
-<meta charset="UTF-8"><title>Timesheet 보고서</title>
+<meta charset="UTF-8"><title>Timesheet Report</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,'Malgun Gothic',sans-serif;color:#1a1a18;background:#f5f5f3}
   .page{max-width:960px;margin:0 auto;padding:24px 24px 60px}
 
-  /* KPI 4개 */
+  /* KPI cards */
   .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
   .kpi{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:16px 18px}
   .kpi-top{display:flex;align-items:center;gap:7px;font-size:12px;color:#6b6b67;font-weight:500;margin-bottom:8px}
@@ -3313,13 +3318,13 @@ function printReport() {
   .kpi-val{font-size:30px;font-weight:700;letter-spacing:-1px;color:#1a1a18;line-height:1;margin-bottom:6px}
   .kpi-sub{font-size:11px;font-weight:600}
 
-  /* 차트 + 팀 테이블 */
+  /* chart + Team table */
   .charts-row{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:16px}
   .card{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:18px}
   .card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:14px}
   .chart-wrap{position:relative;height:240px}
 
-  /* 팀 테이블 */
+  /* Team table */
   .table-card{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:18px;margin-bottom:16px}
   .table-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:14px}
   table{width:100%;border-collapse:collapse;font-size:13px}
@@ -3327,7 +3332,7 @@ function printReport() {
   td{padding:10px 12px;border-bottom:1px solid #f5f5f3;vertical-align:middle}
   tr:last-child td{border-bottom:none}
 
-  /* 상세 */
+  /* Detail */
   .detail-card{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:18px}
   .num{text-align:right;font-variant-numeric:tabular-nums}
   .muted{color:#9b9b96}
@@ -3340,12 +3345,12 @@ function printReport() {
   }
 </style></head><body><div class="page">
 
-  <!-- KPI 4개 -->
+  <!-- KPI cards -->
   <div class="kpi-grid">
     <div class="kpi">
       <div class="kpi-top"><span class="kpi-icon">⏱</span> Total hours logged</div>
       <div class="kpi-val">${totalH.toFixed(0)}h</div>
-      ${totalDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">${data.length}건 기록</span>`}
+      ${totalDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">${data.length}records</span>`}
     </div>
     <div class="kpi">
       <div class="kpi-top"><span class="kpi-icon">🎯</span> Utilization rate</div>
@@ -3355,7 +3360,7 @@ function printReport() {
     <div class="kpi">
       <div class="kpi-top"><span class="kpi-icon">⚠️</span> Overtime hours</div>
       <div class="kpi-val">${overtimeH.toFixed(0)}h</div>
-      ${otDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">주 40h 초과분</span>`}
+      ${otDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">Excess over 40h/week</span>`}
     </div>
     <div class="kpi">
       <div class="kpi-top"><span class="kpi-icon">📋</span> Submission rate</div>
@@ -3364,19 +3369,19 @@ function printReport() {
     </div>
   </div>
 
-  <!-- 차트 2개 -->
+  <!-- Charts -->
   <div class="charts-row">
     <div class="card">
-      <div class="card-title">날짜별 청구 가능 / 불가</div>
+      <div class="card-title">Billable vs Non-billable by Date</div>
       <div class="chart-wrap"><canvas id="billChart"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">스폰서별 시간 분포</div>
+      <div class="card-title">Hours by Sponsor</div>
       <div class="chart-wrap"><canvas id="sponsorChart"></canvas></div>
     </div>
   </div>
 
-  <!-- 팀 멤버 테이블 -->
+  <!-- Team member table -->
   <div class="table-card">
     <div class="table-title">Team member breakdown</div>
     <table>
@@ -3386,8 +3391,8 @@ function printReport() {
   </div>
 
   <div class="footer">
-    <span>Timesheet Analytics · 브라우저에서만 처리, 서버 저장 없음</span>
-    <span>${printDate} 출력</span>
+    <span>Timesheet Analytics · Processed locally · Never stored on server</span>
+    <span>${printDate} Print</span>
   </div>
 
 </div>
@@ -3436,10 +3441,10 @@ window.addEventListener('load', function() {
 function exportExcel() {
   const XLS = window.XLSXStyle || window.XLSX;
   const data = filteredData;
-  if (!data || data.length === 0) { alert('내보낼 데이터가 없습니다.'); return; }
+  if (!data || data.length === 0) { alert('No data to export.'); return; }
 
   const wb = XLS.utils.book_new();
-  const printDate = new Date().toLocaleDateString('ko-KR');
+  const printDate = new Date().toLocaleDateString('en-US');
 
   // ── Helpers ─────────────────────────────────────────────
   const totalH = data.reduce((s, d) => s + d.Hours, 0);
@@ -3503,7 +3508,7 @@ function exportExcel() {
   }
 
   // ══════════════════════════════════════════════════════════
-  // SHEET 1: 요약 보고서
+  // SHEET 1: Summary Report
   // ══════════════════════════════════════════════════════════
   const S = [];
   const merges = [];
@@ -3514,13 +3519,13 @@ function exportExcel() {
 
   // ── Title block ────────────────────────────────────────
   addRow([
-    cell('Timesheet 보고서', {
+    cell('Timesheet Report', {
       font: { bold: true, sz: 18, color: { rgb: WHITE }, name: 'Arial' },
       fill: { fgColor: { rgb: BLUE }, patternType: 'solid' },
       alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
     }),
     blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE),
-    cell(`출력일: ${printDate}`, {
+    cell(`Date: ${printDate}`, {
       font: { sz: 10, color: { rgb: 'BFDBFE' }, name: 'Arial' },
       fill: { fgColor: { rgb: BLUE }, patternType: 'solid' },
       alignment: { horizontal: 'right', vertical: 'center' },
@@ -3529,7 +3534,7 @@ function exportExcel() {
   addMerge(r-1, r-1, 0, 4);
 
   addRow([
-    cell(`기간: ${dateRange}  |  참여 인원: ${people.length}명`, {
+    cell(`Period: ${dateRange}  |  Headcount: ${people.length}`, {
       font: { sz: 10, color: { rgb: WHITE }, name: 'Arial' },
       fill: { fgColor: { rgb: '1E40AF' }, patternType: 'solid' },
       alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
@@ -3543,10 +3548,10 @@ function exportExcel() {
   r++; // row for labels
   const kpiRow = r - 1;
   const kpis = [
-    { label: '총 투입 시간', value: totalH, unit: 'h', color: BLUE,   bg: 'DBEAFE' },
-    { label: '청구 가능',    value: billH,  unit: 'h', color: GREEN,  bg: 'DCFCE7' },
-    { label: '청구 불가',    value: nonBH,  unit: 'h', color: RED,    bg: 'FEE2E2' },
-    { label: '1인 평균',     value: people.length > 0 ? totalH/people.length : 0, unit: 'h', color: PURPLE, bg: 'EDE9FE' },
+    { label: 'Total hours', value: totalH, unit: 'h', color: BLUE,   bg: 'DBEAFE' },
+    { label: 'Billable',    value: billH,  unit: 'h', color: GREEN,  bg: 'DCFCE7' },
+    { label: 'Non-billable',    value: nonBH,  unit: 'h', color: RED,    bg: 'FEE2E2' },
+    { label: 'Avg per person',     value: people.length > 0 ? totalH/people.length : 0, unit: 'h', color: PURPLE, bg: 'EDE9FE' },
   ];
   // Labels row
   S[kpiRow] = {};
@@ -3591,9 +3596,9 @@ function exportExcel() {
   [0,1,2,3].forEach(i => {
     const k = kpis[i];
     const pct = totalH > 0 ? Math.round(k.value/totalH*100) : 0;
-    const sub = i === 0 ? `${people.length}명 기준` :
-                i === 3 ? `${people.length}명 기준` :
-                `전체의 ${pct}%`;
+    const sub = i === 0 ? `${people.length}people` :
+                i === 3 ? `${people.length}people` :
+                `${pct}% of total`;
     S[r][String.fromCharCode(65+i)] = cell(sub, {
       font: { sz: 9, color: { rgb: k.color }, name: 'Arial' },
       fill: { fgColor: { rgb: k.bg }, patternType: 'solid' },
@@ -3606,19 +3611,19 @@ function exportExcel() {
   addRow([blank()]); // spacer
 
   // ── Category summary ──────────────────────────────────
-  addRow([sectionHdr('대분류별 시간'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
+  addRow([sectionHdr('Hours by category'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
   addMerge(r-1, r-1, 0, 5);
 
   addRow([
-    hdr('대분류', '1E3A5F'), hdr('태스크 유형', '1E3A5F'), hdr('시간 (h)', '1E3A5F'),
-    hdr('비율 (%)', '1E3A5F'), hdr('청구 가능 (h)', '1E3A5F'), hdr('청구 불가 (h)', '1E3A5F'),
+    hdr('Category', '1E3A5F'), hdr('Task type', '1E3A5F'), hdr('Hours (h)', '1E3A5F'),
+    hdr('Ratio (%)', '1E3A5F'), hdr('Billable (h)', '1E3A5F'), hdr('Non-billable (h)', '1E3A5F'),
   ]);
 
   const byCat = {};
   data.forEach(d => {
     const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
-    const key = cat ? cat.code : '미분류';
-    const name = cat ? cat.name : '미분류';
+    const key = cat ? cat.code : 'Unclassified';
+    const name = cat ? cat.name : 'Unclassified';
     const color = cat ? cat.color.replace('#','') : '888888';
     if (!byCat[key]) byCat[key] = { name, color, total: 0, billable: 0 };
     byCat[key].total += d.Hours;
@@ -3639,7 +3644,7 @@ function exportExcel() {
   });
   // Total row
   addRow([
-    hdr('합계', '374151'), hdr('', '374151'),
+    hdr('Total', '374151'), hdr('', '374151'),
     { v: Math.round(totalH*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:11,color:{rgb:WHITE},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
     { v: 1, t:'n', z:'0.0%', s:{ font:{bold:true,sz:10,color:{rgb:WHITE},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
     { v: Math.round(billH*10)/10, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:'86efac'},name:'Arial'}, fill:{fgColor:{rgb:'374151'},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
@@ -3648,9 +3653,9 @@ function exportExcel() {
   addRow([blank()]);
 
   // ── Sponsor summary ───────────────────────────────────
-  addRow([sectionHdr('스폰서별 시간'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
+  addRow([sectionHdr('Hours by Sponsor'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
   addMerge(r-1, r-1, 0, 5);
-  addRow([hdr('스폰서', '1E3A5F'), hdr('시간 (h)', '1E3A5F'), hdr('비율 (%)', '1E3A5F'), hdr('', '1E3A5F'), hdr('', '1E3A5F'), hdr('', '1E3A5F')]);
+  addRow([hdr('Sponsor', '1E3A5F'), hdr('Hours (h)', '1E3A5F'), hdr('Ratio (%)', '1E3A5F'), hdr('', '1E3A5F'), hdr('', '1E3A5F'), hdr('', '1E3A5F')]);
 
   const bySponsor = {};
   data.forEach(d => { bySponsor[d['Sponsor Name']] = (bySponsor[d['Sponsor Name']]||0) + d.Hours; });
@@ -3666,9 +3671,9 @@ function exportExcel() {
   addRow([blank()]);
 
   // ── Person summary ────────────────────────────────────
-  addRow([sectionHdr('직원별 시간'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
+  addRow([sectionHdr('Hours by Employee'), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE), blank(BLUE)]);
   addMerge(r-1, r-1, 0, 5);
-  addRow([hdr('직원', '1E3A5F'), hdr('총 시간 (h)', '1E3A5F'), hdr('청구 가능 (h)', '1E3A5F'), hdr('청구 불가 (h)', '1E3A5F'), hdr('청구 비율 (%)', '1E3A5F'), hdr('', '1E3A5F')]);
+  addRow([hdr('Employee', '1E3A5F'), hdr('Total Hours (h)', '1E3A5F'), hdr('Billable (h)', '1E3A5F'), hdr('Non-billable (h)', '1E3A5F'), hdr('billable Ratio (%)', '1E3A5F'), hdr('', '1E3A5F')]);
 
   const byPerson = {};
   data.forEach(d => {
@@ -3706,12 +3711,12 @@ function exportExcel() {
     });
   });
 
-  XLS.utils.book_append_sheet(wb, ws1clean, '요약 보고서');
+  XLS.utils.book_append_sheet(wb, ws1clean, 'Summary Report');
 
   // ══════════════════════════════════════════════════════════
-  // SHEET 2: 상세 내역
+  // SHEET 2: Detail
   // ══════════════════════════════════════════════════════════
-  const colHdrs = ['날짜','직원','스폰서','프로젝트','대분류','태스크','시간(h)','청구여부'];
+  const colHdrs = ['Date','Employee','Sponsor','Projects','Category','Task','Hours(h)','Billable'];
   const detHead = colHdrs.map(h => hdr(h, '1E3A5F'));
 
   const sorted = [...data].sort((a,b) => a.dateStr.localeCompare(b.dateStr) || a.Name.localeCompare(b.Name));
@@ -3730,7 +3735,7 @@ function exportExcel() {
       dataCell(catCode, true, 'center', catColor, bg),
       dataCell(task, false, 'left', DGRAY, bg),
       { v: d.Hours, t:'n', z:'#,##0.0', s:{ font:{bold:true,sz:10,color:{rgb:BLUE},name:'Arial'}, fill:{fgColor:{rgb:bg},patternType:'solid'}, alignment:{horizontal:'right'}, border } },
-      dataCell(d.isBillable ? '✔ 청구가능' : '✘ 청구불가', true, 'center', billColor, bg),
+      dataCell(d.isBillable ? '✔ Billable' : '✘ Non-billable', true, 'center', billColor, bg),
     ];
   });
 
@@ -3747,7 +3752,7 @@ function exportExcel() {
     });
   });
 
-  XLS.utils.book_append_sheet(wb, ws2, '상세 내역');
+  XLS.utils.book_append_sheet(wb, ws2, 'Detail');
 
   // ── Save ───────────────────────────────────────────────
   const fname = `timesheet_report_${dates[dates.length-1] || 'export'}.xlsx`;
