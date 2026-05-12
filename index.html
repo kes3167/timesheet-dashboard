@@ -2271,12 +2271,11 @@ function renderTeamView(data) {
     const topTasks = Object.entries(v.tasks).sort((a,b)=>b[1]-a[1]).slice(0,3);
     const maxH = topPeople[0]?.[1]?.total || 1;
     const activePeople = topPeople.filter(([,p])=>p.total>0);
-    const teamAvg = activePeople.length > 0 ? activePeople.reduce((s,[,p])=>s+p.total,0) / activePeople.length : 0;
+    const stdH = Math.max(1, [...new Set(filteredData.map(d => getISOWeek(d.dateStr)))].length) * 40;
     function statusPill(hours) {
       if (!hours) return '';
-      const ratio = teamAvg > 0 ? hours / teamAvg : 1;
-      if (ratio > 1.2) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FCEBEB;color:#A32D2D;flex-shrink:0">Over</span>`;
-      if (ratio < 0.8) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FAEEDA;color:#854F0B;flex-shrink:0">Under</span>`;
+      if (hours > stdH) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FCEBEB;color:#A32D2D;flex-shrink:0">Over</span>`;
+      if (hours < stdH * 0.9) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FAEEDA;color:#854F0B;flex-shrink:0">Under</span>`;
       return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EAF3DE;color:#3B6D11;flex-shrink:0">On track</span>`;
     }
     return `<div class="card" style="border-left:3px solid ${v.info.color}">
@@ -3168,273 +3167,221 @@ function goBackToTaskmap() {
 
 // ── PRINT REPORT ──────────────────────────────────────────
 function printReport() {
-  // ── 현재 상세내역 테이블의 필터/정렬 상태를 그대로 반영 ──
   let data = [...filteredData];
-
-  // 대분류 필터
-  if (detailCatFilter) {
-    data = data.filter(d => { const c = getCat(d.Task, d['Job Code'], d['Sponsor Name']); return c && c.code === detailCatFilter; });
-  }
-  // 직원 필터
-  if (detailPersonFilter) {
-    data = data.filter(d => d.Name === detailPersonFilter);
-  }
-  // 키워드 검색
-  if (detailSearchStr) {
-    data = data.filter(d => {
-      const str = [d.Name, d['Sponsor Name'], d['Project Name'], d.Task, d.dateStr].join(' ').toLowerCase();
-      return str.includes(detailSearchStr);
-    });
-  }
-  // 현재 정렬 상태 반영
+  if (detailCatFilter) data = data.filter(d => { const c = getCat(d.Task, d['Job Code'], d['Sponsor Name']); return c && c.code === detailCatFilter; });
+  if (detailPersonFilter) data = data.filter(d => d.Name === detailPersonFilter);
+  if (detailSearchStr) data = data.filter(d => { const str = [d.Name, d['Sponsor Name'], d['Project Name'], d.Task, d.dateStr].join(' ').toLowerCase(); return str.includes(detailSearchStr); });
   data.sort((a, b) => {
     const av = a[detailSortCol], bv = b[detailSortCol];
     if (detailSortCol === 'Hours') return detailSortAsc ? av - bv : bv - av;
     return detailSortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
   });
-
   if (!data || data.length === 0) { alert('출력할 데이터가 없습니다.'); return; }
 
-  // ── Aggregate summaries ──
-  const totalH = data.reduce((s, d) => s + d.Hours, 0);
+  const totalH    = data.reduce((s, d) => s + d.Hours, 0);
   const billableH = data.filter(d => d.isBillable).reduce((s, d) => s + d.Hours, 0);
-  const nonBillH = totalH - billableH;
-  const people = [...new Set(data.map(d => d.Name))];
-  const sponsors = [...new Set(data.map(d => d['Sponsor Name']))];
-  const dateRange = data.length ? (() => {
-    const dates = data.map(d => d.dateStr).sort();
-    return dates[0] === dates[dates.length-1] ? dates[0] : `${dates[0]} ~ ${dates[dates.length-1]}`;
-  })() : '-';
+  const nonBillH  = totalH - billableH;
+  const billPct   = totalH > 0 ? Math.round(billableH / totalH * 100) : 0;
+  const people    = [...new Set(data.map(d => d.Name))];
+  const dateRange = (() => { const ds = data.map(d => d.dateStr).sort(); return ds[0] === ds[ds.length-1] ? ds[0] : `${ds[0]} ~ ${ds[ds.length-1]}`; })();
 
-  // ── By person ──
+  // 초과근무
+  const personHoursMap = {};
+  data.forEach(d => { personHoursMap[d.Name] = (personHoursMap[d.Name]||0) + d.Hours; });
+  const weekCount = Math.max(1, [...new Set(data.map(d => getISOWeek(d.dateStr)))].length);
+  const overtimeH = Object.values(personHoursMap).reduce((s, h) => s + Math.max(0, h - weekCount * 40), 0);
+
+  // 제출률
+  const totalMembers = Object.values(TEAM_MAP).reduce((s, t) => s + t.members.length, 0);
+  const submitPct = totalMembers > 0 ? Math.round(people.length / totalMembers * 100) : 100;
+
+  // 이전 기간 대비 델타 (전체 allData에서)
+  const groups = [...new Set(dateKeys.map(k => getGroupKey(k)))].sort();
+  let totalDeltaHtml = '', otDeltaHtml = '';
+  if (granularity !== 'all' && groups.length >= 2) {
+    const curIdx  = groups.indexOf(activeDate);
+    const prevGrp = curIdx > 0 ? groups[curIdx - 1] : groups[groups.length - 2];
+    const curGrp  = activeDate !== 'all' ? activeDate : groups[groups.length - 1];
+    const hPrev = allData.filter(d => getGroupKey(d.dateStr) === prevGrp).reduce((s,d)=>s+d.Hours,0);
+    const hCur  = allData.filter(d => getGroupKey(d.dateStr) === curGrp).reduce((s,d)=>s+d.Hours,0);
+    if (hPrev > 0) {
+      const pct = Math.round((hCur - hPrev) / hPrev * 100);
+      const up = pct >= 0;
+      totalDeltaHtml = `<span style="font-size:11px;font-weight:600;color:${up?'#1a6640':'#7a1c1c'}">${up?'↗':'↘'} ${up?'+':''}${pct}% vs last period</span>`;
+    }
+    // 초과근무 델타
+    const prevPH = {};
+    allData.filter(d=>getGroupKey(d.dateStr)===prevGrp).forEach(d=>{ prevPH[d.Name]=(prevPH[d.Name]||0)+d.Hours; });
+    const wkPrev = Math.max(1,[...new Set(allData.filter(d=>getGroupKey(d.dateStr)===prevGrp).map(d=>getISOWeek(d.dateStr)))].length);
+    const otPrev = Object.values(prevPH).reduce((s,h)=>s+Math.max(0,h-wkPrev*40),0);
+    if (otPrev > 0) {
+      const pct = Math.round((overtimeH - otPrev) / otPrev * 100);
+      const up = pct >= 0;
+      otDeltaHtml = `<span style="font-size:11px;font-weight:600;color:${up?'#7a1c1c':'#1a6640'}">${up?'↗':'↘'} ${up?'+':''}${pct}% vs last period</span>`;
+    }
+  }
+
+  // 직원별
   const byPerson = {};
   data.forEach(d => {
     if (!byPerson[d.Name]) byPerson[d.Name] = { total: 0, billable: 0 };
     byPerson[d.Name].total += d.Hours;
     if (d.isBillable) byPerson[d.Name].billable += d.Hours;
   });
-  const personRows = Object.entries(byPerson).sort((a,b) => b[1].total - a[1].total)
-    .map(([n, v]) => `<tr>
-      <td>${n}</td>
-      <td class="num">${v.total.toFixed(1)}h</td>
-      <td class="num">${v.billable.toFixed(1)}h</td>
-      <td class="num">${v.total > 0 ? Math.round(v.billable/v.total*100) : 0}%</td>
-    </tr>`).join('');
+  const personsSorted = Object.entries(byPerson).sort((a,b) => b[1].total - a[1].total);
+  const avgH = people.length > 0 ? totalH / people.length : 0;
 
-  // ── By category ──
-  const byCat = {};
-  data.forEach(d => {
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
-    const key = cat ? `${cat.code} ${cat.name}` : '미분류';
-    const color = cat ? cat.color : '#888';
-    if (!byCat[key]) byCat[key] = { hours: 0, color };
-    byCat[key].hours += d.Hours;
-  });
-  const catRows = Object.entries(byCat).sort((a,b) => b[1].hours - a[1].hours)
-    .map(([k, v]) => {
-      const pct = totalH > 0 ? (v.hours / totalH * 100).toFixed(1) : 0;
-      const barW = Math.round(v.hours / totalH * 100);
-      return `<tr>
-        <td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${v.color};margin-right:6px;vertical-align:middle"></span>${k}</td>
-        <td class="num">${v.hours.toFixed(1)}h</td>
-        <td class="num">${pct}%</td>
-        <td style="padding-right:12px"><div style="background:#eee;border-radius:3px;height:6px;width:100%"><div style="background:${v.color};width:${barW}%;height:6px;border-radius:3px"></div></div></td>
-      </tr>`;
-    }).join('');
-
-  // ── By sponsor ──
+  // 스폰서별
   const bySponsor = {};
-  data.forEach(d => {
-    if (!bySponsor[d['Sponsor Name']]) bySponsor[d['Sponsor Name']] = 0;
-    bySponsor[d['Sponsor Name']] += d.Hours;
-  });
-  const sponsorRows = Object.entries(bySponsor).sort((a,b) => b[1]-a[1])
-    .map(([s, h]) => `<tr>
-      <td>${s}</td>
-      <td class="num">${h.toFixed(1)}h</td>
-      <td class="num">${totalH > 0 ? (h/totalH*100).toFixed(1) : 0}%</td>
-    </tr>`).join('');
+  data.forEach(d => { bySponsor[d['Sponsor Name']] = (bySponsor[d['Sponsor Name']]||0) + d.Hours; });
+  const sponsorData = Object.entries(bySponsor).sort((a,b) => b[1]-a[1]).slice(0, 8);
 
-  // ── Detail table rows — 현재 정렬 상태 그대로 사용 ──
-  const detailRows = data.map((d, i) => {
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
-    const catLabel = cat ? cat.code : '—';
-    const catColor = cat ? cat.color : '#888';
-    const catBg = cat ? cat.bg : '#f3f4f6';
-    const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
-    const billColor = d.isBillable ? '#16A34A' : '#DC2626';
-    const billText = d.isBillable ? '✔' : '✘';
+  // 날짜 그룹별 (±2 고정 5개)
+  let chartLabels, chartBill, chartNon;
+  if (granularity === 'week') {
+    const wMapB = {}, wMapN = {};
+    allData.forEach(d => { const w=getGroupKey(d.dateStr); if(d.isBillable) wMapB[w]=(wMapB[w]||0)+d.Hours; else wMapN[w]=(wMapN[w]||0)+d.Hours; });
+    const allWks = [...new Set(allData.map(d=>getGroupKey(d.dateStr)))].sort();
+    let cw = (activeDate!=='all'&&/W\d+/.test(activeDate))?activeDate:allWks[allWks.length-1];
+    function addW(wk,delta){ const[y,w]=wk.split('-W').map(Number); const j4=new Date(y,0,4); const mo=new Date(j4); mo.setDate(j4.getDate()-((j4.getDay()||7)-1)+(w-1)*7+delta*7); return getISOWeek(mo.toISOString().slice(0,10)); }
+    const five=[-2,-1,0,1,2].map(d=>addW(cw,d));
+    chartLabels=five.map(w=>`${parseInt(w.split('-W')[1])}주차`);
+    chartBill=five.map(w=>+((wMapB[w]||0).toFixed(1)));
+    chartNon =five.map(w=>+((wMapN[w]||0).toFixed(1)));
+  } else if (granularity === 'month') {
+    const mMapB={},mMapN={};
+    allData.forEach(d=>{ const m=d.dateStr.slice(0,7); if(d.isBillable) mMapB[m]=(mMapB[m]||0)+d.Hours; else mMapN[m]=(mMapN[m]||0)+d.Hours; });
+    const allMs=[...new Set(Object.keys(mMapB).concat(Object.keys(mMapN)))].sort();
+    let cm=activeDate!=='all'?activeDate:allMs[allMs.length-1];
+    if(!/^\d{4}-\d{2}$/.test(cm)) cm=allMs[allMs.length-1];
+    function addM(ym,d){ let[y,m]=ym.split('-').map(Number); m+=d; while(m>12){m-=12;y++;} while(m<1){m+=12;y--;} return `${y}-${String(m).padStart(2,'0')}`; }
+    const five=[-2,-1,0,1,2].map(d=>addM(cm,d));
+    chartLabels=five.map(m=>`${parseInt(m.split('-')[1])}월`);
+    chartBill=five.map(m=>+((mMapB[m]||0).toFixed(1)));
+    chartNon =five.map(m=>+((mMapN[m]||0).toFixed(1)));
+  } else {
+    const dMapB={},dMapN={};
+    allData.forEach(d=>{ if(d.isBillable) dMapB[d.dateStr]=(dMapB[d.dateStr]||0)+d.Hours; else dMapN[d.dateStr]=(dMapN[d.dateStr]||0)+d.Hours; });
+    const allDs=[...new Set(allData.map(d=>d.dateStr))].sort();
+    let cd=(activeDate!=='all'&&/^\d{4}-\d{2}-\d{2}$/.test(activeDate))?activeDate:allDs[allDs.length-1];
+    function addD(ds,d){ const dt=new Date(ds+'T12:00:00'); dt.setDate(dt.getDate()+d); return dt.toISOString().slice(0,10); }
+    const five=[-2,-1,0,1,2].map(d=>addD(cd,d));
+    chartLabels=five.map(d=>d.slice(5));
+    chartBill=five.map(d=>+((dMapB[d]||0).toFixed(1)));
+    chartNon =five.map(d=>+((dMapN[d]||0).toFixed(1)));
+  }
+
+  const printDate = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
+
+  // 팀 멤버 테이블 — 기준: 주 40h (1일 8h)
+  const stdHours = weekCount * 40; // 기간 내 주 수 × 40h
+  const memberRows = personsSorted.map(([name, v]) => {
+    const bPct = v.total > 0 ? Math.round(v.billable / v.total * 100) : 0;
+    const diff = +(v.total - stdHours).toFixed(1);
+    const diffColor = diff > 0 ? '#A32D2D' : diff < 0 ? '#854F0B' : '#374151';
+    const diffSign  = diff >= 0 ? '+' : '';
+    const status = v.total > stdHours ? ['Over target','#FCEBEB','#A32D2D']
+                 : v.total < stdHours * 0.9 ? ['Under','#FAEEDA','#854F0B']
+                 : ['On track','#EAF3DE','#3B6D11'];
     return `<tr>
-      <td class="muted" style="white-space:nowrap">${d.dateStr}</td>
-      <td style="white-space:nowrap">${d.Name}</td>
-      <td>${(d['Sponsor Name']||'').length>20?(d['Sponsor Name']).slice(0,20)+'…':d['Sponsor Name']}</td>
-      <td>${(d['Project Name']||'').length>20?(d['Project Name']).slice(0,20)+'…':d['Project Name']}</td>
-      <td><span style="display:inline-block;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:700;color:${catColor};background:${catBg};white-space:nowrap">${catLabel}</span></td>
-      <td>${task.length>28?task.slice(0,28)+'…':task}</td>
-      <td class="num" style="font-weight:700">${d.Hours.toFixed(1)}h</td>
-      <td style="text-align:center;color:${billColor};font-weight:700">${billText}</td>
+      <td style="font-weight:600;white-space:nowrap;padding:10px 12px">${name}</td>
+      <td style="font-weight:700;padding:10px 12px">${v.total.toFixed(0)}h</td>
+      <td style="padding:10px 12px"><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:90px;height:6px;background:#e5e7eb;border-radius:3px;flex-shrink:0">
+          <div style="width:${bPct}%;height:6px;background:#378ADD;border-radius:3px"></div>
+        </div>
+        <span style="font-weight:600">${bPct}%</span>
+      </div></td>
+      <td style="color:${diffColor};font-weight:600;padding:10px 12px">${diffSign}${diff}h</td>
+      <td style="padding:10px 12px"><span style="display:inline-block;padding:3px 12px;border-radius:99px;font-size:11px;font-weight:700;background:${status[1]};color:${status[2]}">${status[0]}</span></td>
     </tr>`;
   }).join('');
 
-  const printDate = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric'});
-  const activeFilter = detailPersonFilter ? ` · 직원: ${detailPersonFilter}` : '';
-  const catFilterLabel = detailCatFilter ? ` · 대분류: ${detailCatFilter}` : '';
-  const searchLabel = detailSearchStr ? ` · 검색: "${detailSearchStr}"` : '';
-  const sortLabel = `정렬: ${DET_COLS.find(c=>c.key===detailSortCol)?.label||detailSortCol} ${detailSortAsc?'▲':'▼'}`;
-
-  // ── Chart data 준비 ──
-  const catChartData = Object.entries(byCat).sort((a,b)=>b[1].hours-a[1].hours);
-  const sponsorChartData = Object.entries(bySponsor).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const personChartData = Object.entries(byPerson).sort((a,b)=>b[1].total-a[1].total).slice(0,12);
-
   const html = `<!DOCTYPE html><html lang="ko"><head>
-<meta charset="UTF-8">
-<title>Timesheet 보고서</title>
+<meta charset="UTF-8"><title>Timesheet 보고서</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,'Malgun Gothic',sans-serif;font-size:12px;color:#1a1a18;background:#fff}
-  .page{max-width:1000px;margin:0 auto;padding:32px 36px 60px}
-  .report-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:14px;border-bottom:3px solid #3266ad}
-  .report-title{font-size:22px;font-weight:800;color:#3266ad}
-  .report-sub{font-size:11px;color:#888;margin-top:4px;line-height:1.6}
-  .report-meta{font-size:11px;color:#888;text-align:right;line-height:1.8}
-  .filter-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
-  .filter-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:600;background:#eff6ff;color:#3266ad;border:1px solid #bfdbfe}
-  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
-  .summary-card{border-radius:8px;padding:12px 14px}
-  .summary-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-  .summary-value{font-size:22px;font-weight:800}
-  .summary-sub{font-size:10px;color:#aaa;margin-top:2px}
-  .charts-section{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-  .chart-card{border:1px solid #e5e5e2;border-radius:8px;padding:14px}
-  .chart-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:10px}
-  .chart-wrap{position:relative;height:200px}
-  .chart-wide{grid-column:1/-1}
-  .section{margin-bottom:22px}
-  .section-title{font-size:12px;font-weight:700;color:#3266ad;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid #e0e8f5;display:flex;justify-content:space-between;align-items:center}
-  .section-badge{font-size:10px;font-weight:600;color:#888;font-variant-numeric:tabular-nums}
-  table{width:100%;border-collapse:collapse;font-size:11px}
-  th{text-align:left;padding:5px 8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;border-bottom:1px solid #e5e5e2;background:#fafaf8;white-space:nowrap}
-  td{padding:5px 8px;border-bottom:1px solid #f0f0ec;vertical-align:middle}
+  body{font-family:-apple-system,'Malgun Gothic',sans-serif;color:#1a1a18;background:#f5f5f3}
+  .page{max-width:960px;margin:0 auto;padding:24px 24px 60px}
+
+  /* KPI 4개 */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:16px 18px}
+  .kpi-top{display:flex;align-items:center;gap:7px;font-size:12px;color:#6b6b67;font-weight:500;margin-bottom:8px}
+  .kpi-icon{font-size:14px}
+  .kpi-val{font-size:30px;font-weight:700;letter-spacing:-1px;color:#1a1a18;line-height:1;margin-bottom:6px}
+  .kpi-sub{font-size:11px;font-weight:600}
+
+  /* 차트 + 팀 테이블 */
+  .charts-row{display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:16px}
+  .card{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:18px}
+  .card-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:14px}
+  .chart-wrap{position:relative;height:240px}
+
+  /* 팀 테이블 */
+  .table-card{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:18px;margin-bottom:16px}
+  .table-title{font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{text-align:left;padding:8px 12px;font-size:11px;font-weight:600;color:#9b9b96;border-bottom:1px solid #f0f0ec}
+  td{padding:10px 12px;border-bottom:1px solid #f5f5f3;vertical-align:middle}
   tr:last-child td{border-bottom:none}
-  tr:nth-child(even) td{background:#fafaf8}
-  .num{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
-  .muted{color:#888}
-  .cat-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
-  .bar-cell{padding-right:8px}
-  .bar-bg{background:#eee;border-radius:3px;height:5px}
-  .bar-fill{height:5px;border-radius:3px}
-  .bill-badge{display:inline-block;padding:1px 6px;border-radius:99px;font-size:10px;font-weight:600}
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-  .footer{margin-top:32px;padding-top:10px;border-top:1px solid #e5e5e2;font-size:10px;color:#bbb;display:flex;justify-content:space-between}
+
+  /* 상세 */
+  .detail-card{background:#fff;border-radius:12px;border:1px solid #e8e8e5;padding:18px}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .muted{color:#9b9b96}
+  .footer{margin-top:20px;display:flex;justify-content:space-between;font-size:10px;color:#c0c0ba;padding-top:12px;border-top:1px solid #e8e8e5}
+
   @media print{
-    body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    .page{padding:16px 20px 32px}
-    .no-break{page-break-inside:avoid}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    body{background:#f5f5f3}
     .page-break{page-break-before:always}
   }
-</style>
-</head><body><div class="page">
+</style></head><body><div class="page">
 
-  <div class="report-header">
-    <div>
-      <div class="report-title">📊 Timesheet 보고서</div>
-      <div class="report-sub">기간: ${dateRange} &nbsp;|&nbsp; 참여 인원: ${people.length}명 &nbsp;|&nbsp; 스폰서: ${sponsors.length}개사</div>
+  <!-- KPI 4개 -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="kpi-top"><span class="kpi-icon">⏱</span> Total hours logged</div>
+      <div class="kpi-val">${totalH.toFixed(0)}h</div>
+      ${totalDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">${data.length}건 기록</span>`}
     </div>
-    <div class="report-meta">출력일: ${printDate}<br>${sortLabel}</div>
-  </div>
-
-  ${(activeFilter || catFilterLabel || searchLabel) ? `
-  <div class="filter-bar">
-    <span style="font-size:10px;color:#888;font-weight:600;line-height:24px">적용된 필터:</span>
-    ${activeFilter ? `<span class="filter-chip">👤 직원: ${detailPersonFilter}</span>` : ''}
-    ${catFilterLabel ? `<span class="filter-chip">🏷 대분류: ${detailCatFilter}</span>` : ''}
-    ${searchLabel ? `<span class="filter-chip">🔍 검색: "${detailSearchStr}"</span>` : ''}
-  </div>` : ''}
-
-  <div class="summary-grid">
-    <div class="summary-card" style="background:#eff6ff;border-left:3px solid #3266ad">
-      <div class="summary-label">총 투입 시간</div>
-      <div class="summary-value" style="color:#3266ad">${totalH.toFixed(1)}h</div>
-      <div class="summary-sub">${data.length}건의 기록</div>
+    <div class="kpi">
+      <div class="kpi-top"><span class="kpi-icon">🎯</span> Utilization rate</div>
+      <div class="kpi-val">${billPct}%</div>
+      <span class="kpi-sub" style="color:${billPct>=80?'#1a6640':'#854F0B'}">↗ Target: ${billPct>=80?'80% ✓':'80% ✗'}</span>
     </div>
-    <div class="summary-card" style="background:#f0fdf4;border-left:3px solid #16A34A">
-      <div class="summary-label">청구 가능</div>
-      <div class="summary-value" style="color:#16A34A">${billableH.toFixed(1)}h</div>
-      <div class="summary-sub">${totalH > 0 ? Math.round(billableH/totalH*100) : 0}%</div>
+    <div class="kpi">
+      <div class="kpi-top"><span class="kpi-icon">⚠️</span> Overtime hours</div>
+      <div class="kpi-val">${overtimeH.toFixed(0)}h</div>
+      ${otDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">주 40h 초과분</span>`}
     </div>
-    <div class="summary-card" style="background:#fef2f2;border-left:3px solid #DC2626">
-      <div class="summary-label">청구 불가</div>
-      <div class="summary-value" style="color:#DC2626">${nonBillH.toFixed(1)}h</div>
-      <div class="summary-sub">${totalH > 0 ? Math.round(nonBillH/totalH*100) : 0}%</div>
-    </div>
-    <div class="summary-card" style="background:#faf5ff;border-left:3px solid #9333EA">
-      <div class="summary-label">1인 평균</div>
-      <div class="summary-value" style="color:#9333EA">${people.length > 0 ? (totalH/people.length).toFixed(1) : 0}h</div>
-      <div class="summary-sub">${people.length}명 기준</div>
+    <div class="kpi">
+      <div class="kpi-top"><span class="kpi-icon">📋</span> Submission rate</div>
+      <div class="kpi-val">${submitPct}%</div>
+      <span class="kpi-sub" style="color:#6b6b67">${people.length} of ${totalMembers} submitted</span>
     </div>
   </div>
 
-  <!-- CHARTS -->
-  <div class="charts-section no-break">
-    <div class="chart-card">
-      <div class="chart-title">대분류별 시간 분포</div>
-      <div class="chart-wrap"><canvas id="catChart"></canvas></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">청구 가능 / 불가</div>
+  <!-- 차트 2개 -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">날짜별 청구 가능 / 불가</div>
       <div class="chart-wrap"><canvas id="billChart"></canvas></div>
     </div>
-    <div class="chart-card chart-wide">
-      <div class="chart-title">직원별 투입 시간 (상위 12명)</div>
-      <div class="chart-wrap" style="height:180px"><canvas id="personChart"></canvas></div>
+    <div class="card">
+      <div class="card-title">스폰서별 시간 분포</div>
+      <div class="chart-wrap"><canvas id="sponsorChart"></canvas></div>
     </div>
   </div>
 
-  <div class="two-col">
-    <div class="section no-break">
-      <div class="section-title">대분류별 시간 <span class="section-badge">${catChartData.length}개</span></div>
-      <table>
-        <thead><tr><th>대분류</th><th class="num">시간</th><th class="num">비율</th><th class="bar-cell">분포</th></tr></thead>
-        <tbody>${catRows}</tbody>
-      </table>
-    </div>
-    <div class="section no-break">
-      <div class="section-title">스폰서별 시간 <span class="section-badge">${Object.keys(bySponsor).length}개사</span></div>
-      <table>
-        <thead><tr><th>스폰서</th><th class="num">시간</th><th class="num">비율</th></tr></thead>
-        <tbody>${sponsorRows}</tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="section no-break">
-    <div class="section-title">직원별 시간 <span class="section-badge">${Object.keys(byPerson).length}명</span></div>
+  <!-- 팀 멤버 테이블 -->
+  <div class="table-card">
+    <div class="table-title">Team member breakdown</div>
     <table>
-      <thead><tr><th>직원</th><th class="num">총 시간</th><th class="num">청구 가능</th><th class="num">청구 불가</th><th class="num">청구 비율</th><th class="bar-cell">분포</th></tr></thead>
-      <tbody>${Object.entries(byPerson).sort((a,b)=>b[1].total-a[1].total).map(([n,v])=>{
-        const bPct = v.total>0?Math.round(v.billable/v.total*100):0;
-        const barW = totalH>0?Math.round(v.total/totalH*100):0;
-        const bColor = bPct>=80?'#16A34A':bPct>=50?'#D97706':'#DC2626';
-        return `<tr>
-          <td style="font-weight:600">${n}</td>
-          <td class="num">${v.total.toFixed(1)}h</td>
-          <td class="num" style="color:#16A34A">${v.billable.toFixed(1)}h</td>
-          <td class="num" style="color:#DC2626">${(v.total-v.billable).toFixed(1)}h</td>
-          <td class="num"><span class="bill-badge" style="background:${bColor}18;color:${bColor}">${bPct}%</span></td>
-          <td class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${barW}%;background:#3266ad"></div></div></td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table>
-  </div>
-
-  <div class="page-break"></div>
-  <div class="section">
-    <div class="section-title">상세 내역 <span class="section-badge">${data.length}건 · ${sortLabel}</span></div>
-    <table>
-      <thead><tr><th>날짜</th><th>직원</th><th>스폰서</th><th>프로젝트</th><th>분류</th><th>태스크</th><th class="num">시간</th><th>청구</th></tr></thead>
-      <tbody>${detailRows}</tbody>
+      <thead><tr><th>Member</th><th>Logged</th><th>Billable %</th><th>vs target</th><th>Status</th></tr></thead>
+      <tbody>${memberRows}</tbody>
     </table>
   </div>
 
@@ -3446,52 +3393,35 @@ function printReport() {
 </div>
 <script>
 window.addEventListener('load', function() {
-  // 대분류 도넛 차트
-  new Chart(document.getElementById('catChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ${JSON.stringify(catChartData.map(([k])=>k))},
-      datasets: [{ data: ${JSON.stringify(catChartData.map(([,v])=>+v.hours.toFixed(1)))},
-        backgroundColor: ${JSON.stringify(catChartData.map(([,v])=>v.color))},
-        borderWidth: 2, borderColor: '#fff' }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'right', labels:{ font:{size:10}, padding:8, boxWidth:10 } },
-        tooltip:{ callbacks:{ label: ctx => ' '+ctx.label+': '+ctx.parsed.toFixed(1)+'h' } } } }
-  });
-
-  // 청구 도넛 차트
   new Chart(document.getElementById('billChart'), {
-    type: 'doughnut',
-    data: {
-      labels: ['청구 가능', '청구 불가'],
-      datasets: [{ data: [${billableH.toFixed(1)}, ${nonBillH.toFixed(1)}],
-        backgroundColor: ['#16A34A', '#DC2626'], borderWidth: 2, borderColor: '#fff' }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'right', labels:{ font:{size:11}, padding:10, boxWidth:12 } },
-        tooltip:{ callbacks:{ label: ctx => ' '+ctx.label+': '+ctx.parsed.toFixed(1)+'h' } } } }
-  });
-
-  // 직원 바 차트
-  new Chart(document.getElementById('personChart'), {
     type: 'bar',
     data: {
-      labels: ${JSON.stringify(personChartData.map(([n])=>n))},
+      labels: ${JSON.stringify(chartLabels)},
       datasets: [
-        { label:'청구 가능', data: ${JSON.stringify(personChartData.map(([,v])=>+v.billable.toFixed(1)))}, backgroundColor:'#16A34Acc', borderRadius:3 },
-        { label:'청구 불가', data: ${JSON.stringify(personChartData.map(([,v])=>+(v.total-v.billable).toFixed(1)))}, backgroundColor:'#DC2626cc', borderRadius:3 }
+        { label:'Billable',     data: ${JSON.stringify(chartBill)}, backgroundColor:'#378ADDcc', borderWidth:0 },
+        { label:'Non-billable', data: ${JSON.stringify(chartNon)},  backgroundColor:'#88878066', borderWidth:0 }
       ]
     },
-    options: { indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'top', labels:{ font:{size:10}, padding:8 } } },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', labels:{ font:{size:11}, padding:10, usePointStyle:true, pointStyle:'rect' } } },
       scales:{
-        x:{ stacked:true, grid:{ color:'rgba(0,0,0,0.05)' }, ticks:{ callback:v=>v+'h', font:{size:10} } },
-        y:{ stacked:true, grid:{ display:false }, ticks:{ font:{size:10} } }
+        x:{ stacked:true, grid:{display:false}, ticks:{font:{size:11},autoSkip:false} },
+        y:{ stacked:true, grid:{color:'rgba(0,0,0,0.05)'}, ticks:{callback:v=>v+'h',font:{size:11}} }
       } }
   });
-
-  setTimeout(() => window.print(), 800);
+  new Chart(document.getElementById('sponsorChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ${JSON.stringify(sponsorData.map(([k])=>k.length>18?k.slice(0,18)+'…':k))},
+      datasets: [{ data: ${JSON.stringify(sponsorData.map(([,v])=>+v.toFixed(1)))},
+        backgroundColor:['#378ADD','#1D9E75','#7F77DD','#EF9F27','#D85A30','#3B6D11','#D4537E','#0F6E56'],
+        borderWidth:3, borderColor:'#fff', hoverOffset:4 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{ legend:{ position:'right', labels:{ font:{size:10}, padding:8, boxWidth:10 } },
+        tooltip:{ callbacks:{ label:ctx=>' '+ctx.label+': '+ctx.parsed.toFixed(1)+'h' } } } }
+  });
+  setTimeout(()=>window.print(), 900);
 });
 <\/script>
 </body></html>`;
