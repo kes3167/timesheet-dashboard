@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Timesheet Analytics Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>window._XLSX_READ = window.XLSX;</script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script>window.XLSXStyle = window.XLSX; window.XLSX = window._XLSX_READ;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -206,13 +208,21 @@
   .metric {
     background: var(--surface); border-radius: var(--radius);
     padding: 1.1rem 1.25rem; border: 1px solid var(--border2);
+    border-left: 3px solid var(--blue);
+    transition: box-shadow .15s, transform .1s;
   }
-  .metric-label { font-size: 12px; color: var(--text2); margin-bottom: .3rem; }
-  .metric-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1.1; }
-  .metric-sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
-  .metric-delta { font-size: 12px; margin-top: 4px; font-weight: 500; }
-  .delta-up { color: var(--green); }
-  .delta-dn { color: var(--red); }
+  .metric:nth-child(1) { border-left-color: #378ADD; }
+  .metric:nth-child(2) { border-left-color: #1D9E75; }
+  .metric:nth-child(3) { border-left-color: #7F77DD; }
+  .metric:nth-child(4) { border-left-color: #EF9F27; }
+  .metric:nth-child(5) { border-left-color: #D85A30; }
+  .metric:nth-child(6) { border-left-color: #0F6E56; }
+  .metric-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text2); margin-bottom: .4rem; }
+  .metric-value { font-size: 30px; font-weight: 700; color: var(--text); line-height: 1.1; letter-spacing: -.5px; }
+  .metric-sub { font-size: 12px; color: var(--text3); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .metric-delta { font-size: 12px; margin-top: 5px; font-weight: 600; padding: 2px 7px; border-radius: 99px; display: inline-block; }
+  .delta-up { color: #1a6640; background: #d9f0e6; }
+  .delta-dn { color: #7a1c1c; background: #fde8e8; }
 
   /* ── DATE FILTER ── */
   .date-filter-wrap {
@@ -773,7 +783,7 @@
         </div>
         <div class="card card-clickable" onclick="goToView('billable')">
           <div class="card-title-wrap">
-            <div class="card-title">청구 가능 / 불가 비교</div>
+            <div class="card-title">날짜별 청구 가능 / 불가</div>
             <span class="card-link-hint">Billable 현황 →</span>
           </div>
           <div style="position:relative;height:270px"><canvas id="billableChart"></canvas></div>
@@ -936,7 +946,16 @@
 <div class="footer">Timesheet Analytics · 파일은 브라우저에서만 처리되며 서버에 저장되지 않습니다.</div>
 
 <script>
-const COLORS = ['#3266ad','#1D9E75','#BA7517','#D85A30','#7F77DD','#639922','#D4537E','#E24B4A','#888780','#0F6E56','#533AB7','#993C1D','#1a6640','#6e3b0f'];
+const COLORS = ['#378ADD','#1D9E75','#7F77DD','#EF9F27','#D85A30','#3B6D11','#D4537E','#0F6E56','#888780','#533AB7','#BA7517','#E24B4A','#1a6640','#6e3b0f'];
+function makeLegendHTML(labels, colors, values) {
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px 14px;margin-bottom:10px">` +
+    labels.map((l,i) => {
+      const label = l.length > 20 ? l.slice(0,20)+'…' : l;
+      const val = values ? ` <strong style="color:var(--text)">${values[i]}</strong>` : '';
+      return `<span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+        <span style="width:10px;height:10px;border-radius:2px;background:${colors[i%colors.length]};flex-shrink:0"></span>${label}${val}</span>`;
+    }).join('') + `</div>`;
+}
 
 // 대분류 카테고리 — Job Code 부서 코드 기반 매핑
 // Job Code 형식: {프로젝트코드}-{부서코드}-{타입}-{번호}
@@ -2251,6 +2270,15 @@ function renderTeamView(data) {
     const topPeople = Object.entries(v.people).sort((a,b)=>b[1].total-a[1].total);
     const topTasks = Object.entries(v.tasks).sort((a,b)=>b[1]-a[1]).slice(0,3);
     const maxH = topPeople[0]?.[1]?.total || 1;
+    const activePeople = topPeople.filter(([,p])=>p.total>0);
+    const teamAvg = activePeople.length > 0 ? activePeople.reduce((s,[,p])=>s+p.total,0) / activePeople.length : 0;
+    function statusPill(hours) {
+      if (!hours) return '';
+      const ratio = teamAvg > 0 ? hours / teamAvg : 1;
+      if (ratio > 1.2) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FCEBEB;color:#A32D2D;flex-shrink:0">Over</span>`;
+      if (ratio < 0.8) return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#FAEEDA;color:#854F0B;flex-shrink:0">Under</span>`;
+      return `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:99px;background:#EAF3DE;color:#3B6D11;flex-shrink:0">On track</span>`;
+    }
     return `<div class="card" style="border-left:3px solid ${v.info.color}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
         <div style="width:38px;height:38px;border-radius:10px;background:${v.info.color}20;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${v.info.icon}</div>
@@ -2279,9 +2307,10 @@ function renderTeamView(data) {
         const personFullName=n;
         const noData=v2.total===0;
         return `<div style="margin-bottom:5px;opacity:${noData?0.4:1}">
-          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
-            <span style="color:${noData?'var(--text3)':'var(--text)'}">${n}</span>
-            <span style="font-weight:700;color:${noData?'var(--text3)':v.info.color}">${noData?'—':v2.total.toFixed(1)+'h'}</span>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:2px">
+            <span style="flex:1;color:${noData?'var(--text3)':'var(--text)'};min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n}</span>
+            ${noData ? '' : statusPill(v2.total)}
+            <span style="font-weight:700;color:${noData?'var(--text3)':v.info.color};flex-shrink:0">${noData?'—':v2.total.toFixed(1)+'h'}</span>
           </div>
           <div style="height:3px;background:var(--surface2);border-radius:99px">
             <div style="height:100%;width:${barW}%;background:${v.info.color};border-radius:99px"></div>
@@ -2310,34 +2339,118 @@ function renderOverview(data) {
 
   charts.sponsor = new Chart(document.getElementById('sponsorChart'), {
     type: 'doughnut',
-    data: { labels: ss.map(([k]) => k), datasets: [{ data: ss.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS, borderWidth: 2, borderColor: '#fff' }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h` } } } }
+    data: { labels: ss.map(([k]) => k), datasets: [{ data: ss.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS, borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toFixed(1)}h` } } } }
   });
 
-  // Billable vs Non-billable by sponsor
-  const billableMap = {}, nonBillableMap = {};
-  data.forEach(d => {
-    const s = d['Sponsor Name'];
-    if (d.isBillable) billableMap[s] = (billableMap[s] || 0) + d.Hours;
-    else nonBillableMap[s] = (nonBillableMap[s] || 0) + d.Hours;
-  });
-  const bSponsors = [...new Set(data.map(d => d['Sponsor Name']))].sort((a,b) => ((billableMap[b]||0)+(nonBillableMap[b]||0)) - ((billableMap[a]||0)+(nonBillableMap[a]||0))).slice(0, 8);
+  // Billable vs Non-billable — granularity별 다른 집계
+  let billLabels, billData, nonBillData;
+
+  if (granularity === 'week') {
+    // 주별: 선택된 주 기준 ±2주 = 총 5개 고정
+    // allData 기준으로 집계 (날짜 필터 무관하게 앞뒤 주 데이터 포함)
+    const weekMapBill = {}, weekMapNon = {};
+    allData.forEach(d => {
+      const w = getGroupKey(d.dateStr);
+      if (d.isBillable) weekMapBill[w] = (weekMapBill[w]||0) + d.Hours;
+      else weekMapNon[w] = (weekMapNon[w]||0) + d.Hours;
+    });
+
+    // 선택된 주 (activeDate가 주 key이면 사용, 아니면 최근 주)
+    const allWeeks = [...new Set(allData.map(d => getGroupKey(d.dateStr)))].sort();
+    let centerWeek = (activeDate !== 'all' && /W\d+/.test(activeDate)) ? activeDate : allWeeks[allWeeks.length-1];
+
+    // ISO week ±N주 계산
+    function addISOWeeks(weekKey, delta) {
+      const [yearStr, wStr] = weekKey.split('-W');
+      const year = parseInt(yearStr), w = parseInt(wStr);
+      const jan4 = new Date(year, 0, 4);
+      const mon = new Date(jan4);
+      mon.setDate(jan4.getDate() - ((jan4.getDay()||7)-1) + (w-1)*7);
+      mon.setDate(mon.getDate() + delta*7);
+      return getISOWeek(mon.toISOString().slice(0,10));
+    }
+
+    const fiveWeeks = [-2,-1,0,1,2].map(d => addISOWeeks(centerWeek, d));
+    billLabels  = fiveWeeks.map(w => { const wn=parseInt(w.split('-W')[1]); return `${wn}주차`; });
+    billData    = fiveWeeks.map(w => +((weekMapBill[w]||0).toFixed(1)));
+    nonBillData = fiveWeeks.map(w => +((weekMapNon[w]||0).toFixed(1)));
+
+  } else if (granularity === 'month') {
+    // 전체 데이터에서 월별 집계 (allData 기준 — 필터와 무관하게 모든 월 파악)
+    const monthMapAll = {}, nonMonthMapAll = {};
+    allData.forEach(d => {
+      const m = d.dateStr.slice(0, 7);
+      if (d.isBillable) monthMapAll[m] = (monthMapAll[m]||0) + d.Hours;
+      else nonMonthMapAll[m] = (nonMonthMapAll[m]||0) + d.Hours;
+    });
+    // filteredData 기준 집계
+    const monthMap = {}, nonMonthMap = {};
+    data.forEach(d => {
+      const m = d.dateStr.slice(0, 7);
+      if (d.isBillable) monthMap[m] = (monthMap[m]||0) + d.Hours;
+      else nonMonthMap[m] = (nonMonthMap[m]||0) + d.Hours;
+    });
+
+    // 선택된 월 기준 ±2개월 = 5개 고정. activeDate==='all'이면 최근 5개월
+    const allMonths = [...new Set(Object.keys(monthMapAll).concat(Object.keys(nonMonthMapAll)))].sort();
+    let centerMonth = activeDate !== 'all' ? activeDate : allMonths[allMonths.length - 1];
+    // centerMonth가 "YYYY-MM" 형식인지 확인 (주별 key가 들어올 수 있으므로)
+    if (!/^\d{4}-\d{2}$/.test(centerMonth)) centerMonth = allMonths[allMonths.length - 1];
+
+    // ±2개월 생성 (데이터 유무 무관하게 고정 5개)
+    function addMonths(ym, delta) {
+      let [y, m] = ym.split('-').map(Number);
+      m += delta;
+      while (m > 12) { m -= 12; y++; }
+      while (m < 1)  { m += 12; y--; }
+      return `${y}-${String(m).padStart(2,'0')}`;
+    }
+    const fiveMonths = [-2,-1,0,1,2].map(d => addMonths(centerMonth, d));
+
+    billLabels  = fiveMonths.map(m => { const [,mo]=m.split('-'); return `${parseInt(mo)}월`; });
+    billData    = fiveMonths.map(m => +((monthMap[m]||0).toFixed(1)));
+    nonBillData = fiveMonths.map(m => +((nonMonthMap[m]||0).toFixed(1)));
+
+  } else {
+    // 기간(day): 선택된 날짜 기준 ±2일 = 총 5개 고정
+    const dayMapBill = {}, dayMapNon = {};
+    allData.forEach(d => {
+      if (d.isBillable) dayMapBill[d.dateStr] = (dayMapBill[d.dateStr]||0) + d.Hours;
+      else dayMapNon[d.dateStr] = (dayMapNon[d.dateStr]||0) + d.Hours;
+    });
+    const allDays = [...new Set(allData.map(d => d.dateStr))].sort();
+    // 선택된 날짜 (activeDate가 날짜면 사용, 아니면 가장 최근)
+    let centerDay = (activeDate !== 'all' && /^\d{4}-\d{2}-\d{2}$/.test(activeDate))
+      ? activeDate : allDays[allDays.length - 1];
+
+    function addDays(dateStr, delta) {
+      const d = new Date(dateStr + 'T12:00:00');
+      d.setDate(d.getDate() + delta);
+      return d.toISOString().slice(0, 10);
+    }
+    const fiveDays = [-2,-1,0,1,2].map(d => addDays(centerDay, d));
+
+    billLabels  = fiveDays.map(d => d.slice(5)); // MM-DD
+    billData    = fiveDays.map(d => +((dayMapBill[d]||0).toFixed(1)));
+    nonBillData = fiveDays.map(d => +((dayMapNon[d]||0).toFixed(1)));
+  }
 
   charts.billable = new Chart(document.getElementById('billableChart'), {
     type: 'bar',
     data: {
-      labels: bSponsors.map(s => s.length > 16 ? s.slice(0,16)+'…' : s),
+      labels: billLabels,
       datasets: [
-        { label: '청구 가능', data: bSponsors.map(s => +(billableMap[s]||0).toFixed(1)), backgroundColor: COLORS[1]+'cc', borderRadius: 4, borderWidth: 0 },
-        { label: '청구 불가', data: bSponsors.map(s => +(nonBillableMap[s]||0).toFixed(1)), backgroundColor: COLORS[3]+'cc', borderRadius: 4, borderWidth: 0 }
+        { label: '청구 가능', data: billData,    backgroundColor: '#378ADDcc', borderWidth: 0 },
+        { label: '청구 불가', data: nonBillData, backgroundColor: '#88878066', borderWidth: 0 }
       ]
     },
     options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'top', labels: { font: { size: 11 }, padding: 10, usePointStyle: true, pointStyle: 'rect' } } },
       scales: {
-        x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v+'h' } },
-        y: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } }
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, autoSkip: false, maxRotation: 35 } },
+        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v+'h', font: { size: 11 } } }
       }
     }
   });
@@ -2355,7 +2468,7 @@ function renderOverview(data) {
     type: 'bar',
     data: {
       labels: ts.map(([k]) => k),
-      datasets: [{ data: ts.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS[0] + 'dd', borderRadius: 4, borderWidth: 0 }]
+      datasets: [{ data: ts.map(([, v]) => +v.toFixed(1)), backgroundColor: ts.map((_,i) => COLORS[i % COLORS.length] + 'cc'), borderRadius: 5, borderWidth: 0 }]
     },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
@@ -2377,7 +2490,7 @@ function renderOverview(data) {
     type: 'bar',
     data: {
       labels: ps.map(([k]) => k),
-      datasets: [{ data: ps.map(([, v]) => +v.toFixed(1)), backgroundColor: COLORS[4] + 'dd', borderRadius: 4, borderWidth: 0 }]
+      datasets: [{ data: ps.map(([, v]) => +v.toFixed(1)), backgroundColor: ps.map((_,i) => COLORS[(i+4) % COLORS.length] + 'cc'), borderRadius: 5, borderWidth: 0 }]
     },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,
