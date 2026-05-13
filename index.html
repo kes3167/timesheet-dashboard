@@ -766,14 +766,14 @@
       <div class="filter-tags" id="filter-tags"></div>
       <div style="display:flex;gap:20px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)">
         <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none">
-          <input type="checkbox" id="cb-internal" onchange="applyFilters()"
-            style="width:15px;height:15px;accent-color:var(--blue);cursor:pointer">
-          Include internal projects
-        </label>
-        <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none">
           <input type="checkbox" id="cb-saved-hours" onchange="applyFilters()"
             style="width:15px;height:15px;accent-color:var(--blue);cursor:pointer">
           Include saved hours
+        </label>
+        <label style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text2);cursor:pointer;user-select:none">
+          <input type="checkbox" id="cb-internal" onchange="applyFilters()"
+            style="width:15px;height:15px;accent-color:var(--blue);cursor:pointer">
+          Include internal projects
         </label>
       </div>
     </div>
@@ -833,6 +833,9 @@
 
     <!-- People -->
     <div id="view-people" style="display:none">
+      <div id="people-back-bar" style="display:none;margin-bottom:.75rem">
+        <button class="btn-sm" onclick="goBackFromView('people')" style="gap:6px;display:flex;align-items:center" id="people-back-btn">← Back to Overview</button>
+      </div>
       <div style="display:grid;grid-template-columns:280px 1fr;gap:14px;align-items:start">
         <!-- left: Employee list -->
         <div class="card" style="padding:0;overflow:hidden;position:sticky;top:70px">
@@ -859,8 +862,8 @@
     <div id="view-detail" style="display:none">
       <div class="card">
         <div id="det-back-bar" style="display:none;margin-bottom:.75rem">
-          <button class="btn-sm" onclick="goBackToTaskmap()" style="gap:6px;display:flex;align-items:center">
-            ← Back to Task Map
+          <button class="btn-sm" onclick="goBackToPrev()" style="gap:6px;display:flex;align-items:center" id="det-back-btn">
+            ← Back
           </button>
         </div>
         <div class="table-toolbar">
@@ -894,22 +897,34 @@
 
     <!-- Billable -->
     <div id="view-billable" style="display:none">
+      <div id="billable-back-bar" style="display:none;margin-bottom:.75rem">
+        <button class="btn-sm" onclick="goBackFromView('billable')" style="gap:6px;display:flex;align-items:center" id="billable-back-btn">← Back to Overview</button>
+      </div>
       <div id="billable-content"></div>
     </div>
 
     <!-- Task Map -->
     <div id="view-taskmap" style="display:none">
+      <div id="taskmap-back-bar" style="display:none;margin-bottom:.75rem">
+        <button class="btn-sm" onclick="goBackFromView('taskmap')" style="gap:6px;display:flex;align-items:center" id="taskmap-back-btn">← Back to Overview</button>
+      </div>
       <div id="taskmap-content"></div>
     </div>
 
     <!-- Project View -->
     <div id="view-project" style="display:none">
+      <div id="project-back-bar" style="display:none;margin-bottom:.75rem">
+        <button class="btn-sm" onclick="goBackFromView('project')" style="gap:6px;display:flex;align-items:center" id="project-back-btn">← Back to Overview</button>
+      </div>
       <div id="proj-cat-tabs" style="display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;"></div>
       <div id="project-content"></div>
     </div>
 
     <!-- Team View -->
     <div id="view-teamview" style="display:none">
+      <div id="teamview-back-bar" style="display:none;margin-bottom:.75rem">
+        <button class="btn-sm" onclick="goBackFromView('teamview')" style="gap:6px;display:flex;align-items:center" id="teamview-back-btn">← Back to Overview</button>
+      </div>
       <div id="teamview-content"></div>
     </div>
 
@@ -1116,6 +1131,7 @@ let dateKeys = [];
 let activeDate = 'all';      // Selected tab key
 let granularity = 'all';     // 'all' | 'month' | 'week' | 'day'
 let activeView = 'overview';
+let previousView = 'overview';
 let charts = {};
 let modalCharts = {};
 let peopleViewMode = 'card';
@@ -1831,17 +1847,45 @@ function switchView(view, btn) {
 }
 
 function goToView(view) {
+  if (activeView !== view) previousView = activeView;
   const btn = [...document.querySelectorAll('.main-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + view + "'"));
-  if (btn) switchMainView(view, btn);
+  if (btn) {
+    activeView = view;
+    document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ['overview','billable','people','project','teamview','detail','taskmap'].forEach(v=>{
+      const el = document.getElementById('view-'+v);
+      if (el) el.style.display = v===view ? 'block' : 'none';
+    });
+    // 뒤로가기 버튼: overview 제외 모든 뷰에서 항상 표시
+    const _vNames = { overview:'Overview', billable:'Billable', people:'People', project:'Projects', teamview:'Teams', taskmap:'Task Map', detail:'Detail' };
+    ['detail','billable','taskmap','project','people','teamview'].forEach(v => {
+      const bar = document.getElementById((v === 'detail' ? 'det' : v) + '-back-bar');
+      const btn = document.getElementById((v === 'detail' ? 'det' : v) + '-back-btn');
+      if (bar) bar.style.display = view === v ? 'block' : 'none';
+      if (btn && view === v) btn.textContent = '← Back to ' + (_vNames[previousView] || 'Overview');
+    });
+    destroyCharts();
+    renderActiveView();
+  }
 }
 
 function switchMainView(view, btn) {
+  if (activeView !== view) previousView = activeView;
   activeView = view;
   document.querySelectorAll('.main-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   ['overview','billable','people','project','teamview','detail','taskmap'].forEach(v=>{
     const el = document.getElementById('view-'+v);
     if (el) el.style.display = v===view ? 'block' : 'none';
+  });
+  // 뒤로가기 버튼: overview 제외 모든 뷰에서 항상 표시
+  const _viewNames = { overview:'Overview', billable:'Billable', people:'People', project:'Projects', teamview:'Teams', taskmap:'Task Map', detail:'Detail' };
+  ['detail','billable','taskmap','project','people','teamview'].forEach(v => {
+    const bar = document.getElementById((v === 'detail' ? 'det' : v) + '-back-bar');
+    const btn = document.getElementById((v === 'detail' ? 'det' : v) + '-back-btn');
+    if (bar) bar.style.display = view === v ? 'block' : 'none';
+    if (btn && view === v) btn.textContent = '← Back to ' + (_viewNames[previousView] || 'Overview');
   });
   destroyCharts();
   renderActiveView();
@@ -3307,15 +3351,24 @@ function jumpToTask(taskName) {
   }, 100);
 }
 
-function goBackToTaskmap() {
-  // Clear search and hide back button
+function goBackFromView(currentView) {
+  const bar = document.getElementById(currentView + '-back-bar');
+  if (bar) bar.style.display = 'none';
+  const target = previousView || 'overview';
+  const btn = [...document.querySelectorAll('.main-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + target + "'"));
+  if (btn) switchMainView(target, btn);
+}
+
+function goBackToPrev() {
   document.getElementById('det-search').value = '';
   filterDetailTable();
   document.getElementById('det-back-bar').style.display = 'none';
-  // Switch back to taskmap
-  const btn = document.querySelector('.view-tab[onclick*="taskmap"]');
-  switchView('taskmap', btn);
+  const target = previousView || 'overview';
+  const btn = [...document.querySelectorAll('.main-tab')].find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + target + "'"));
+  if (btn) switchMainView(target, btn);
 }
+
+function goBackToTaskmap() { goBackToPrev(); }
 
 // ── PRINT REPORT ──────────────────────────────────────────
 function printReport() {
@@ -3341,7 +3394,10 @@ function printReport() {
   const personHoursMap = {};
   data.forEach(d => { personHoursMap[d.Name] = (personHoursMap[d.Name]||0) + d.Hours; });
   const weekCount = Math.max(1, [...new Set(data.map(d => getISOWeek(d.dateStr)))].length);
-  const overtimeH = Object.values(personHoursMap).reduce((s, h) => s + Math.max(0, h - weekCount * 40), 0);
+  const dayCount  = Math.max(1, [...new Set(data.map(d => d.dateStr))].length);
+  const otThreshold = granularity === 'day' ? dayCount * 8 : weekCount * 40;
+  const otLabel     = granularity === 'day' ? 'Excess over 8h/day' : 'Excess over 40h/week';
+  const overtimeH = Object.values(personHoursMap).reduce((s, h) => s + Math.max(0, h - otThreshold), 0);
 
   // Submission rate
   const totalMembers = Object.values(TEAM_MAP).reduce((s, t) => s + t.members.length, 0);
@@ -3364,8 +3420,11 @@ function printReport() {
     // overtime delta
     const prevPH = {};
     allData.filter(d=>getGroupKey(d.dateStr)===prevGrp).forEach(d=>{ prevPH[d.Name]=(prevPH[d.Name]||0)+d.Hours; });
-    const wkPrev = Math.max(1,[...new Set(allData.filter(d=>getGroupKey(d.dateStr)===prevGrp).map(d=>getISOWeek(d.dateStr)))].length);
-    const otPrev = Object.values(prevPH).reduce((s,h)=>s+Math.max(0,h-wkPrev*40),0);
+    const prevData = allData.filter(d=>getGroupKey(d.dateStr)===prevGrp);
+    const wkPrev   = Math.max(1,[...new Set(prevData.map(d=>getISOWeek(d.dateStr)))].length);
+    const dkPrev   = Math.max(1,[...new Set(prevData.map(d=>d.dateStr))].length);
+    const otThreshPrev = granularity === 'day' ? dkPrev * 8 : wkPrev * 40;
+    const otPrev = Object.values(prevPH).reduce((s,h)=>s+Math.max(0,h-otThreshPrev),0);
     if (otPrev > 0) {
       const pct = Math.round((overtimeH - otPrev) / otPrev * 100);
       const up = pct >= 0;
@@ -3425,8 +3484,8 @@ function printReport() {
 
   const printDate = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
 
-  // Team member table — Standard: 40h/week (8h/day)
-  const stdHours = weekCount * 40; // weeks in period × 40h
+  // Team member table — Standard: 40h/week (weekly/monthly) or 8h/day (daily)
+  const stdHours = granularity === 'day' ? dayCount * 8 : weekCount * 40;
   const memberRows = personsSorted.map(([name, v]) => {
     const bPct = v.total > 0 ? Math.round(v.billable / v.total * 100) : 0;
     const diff = +(v.total - stdHours).toFixed(1);
@@ -3507,7 +3566,7 @@ function printReport() {
     <div class="kpi">
       <div class="kpi-top"><span class="kpi-icon">⚠️</span> Overtime hours</div>
       <div class="kpi-val">${overtimeH.toFixed(0)}h</div>
-      ${otDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">Excess over 40h/week</span>`}
+      ${otDeltaHtml || `<span class="kpi-sub" style="color:#9b9b96">Excess over ${granularity === 'day' ? '8h/day' : '40h/week'}</span>`}
     </div>
     <div class="kpi">
       <div class="kpi-top"><span class="kpi-icon">📋</span> Submission rate</div>
