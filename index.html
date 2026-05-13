@@ -1007,12 +1007,6 @@ const CATEGORIES = [
     desc: 'Clinical data management'
   },
   {
-    code: 'QC', name: 'Quality Control (QC)',
-    color: '#D97706', bg: '#fffbeb', border: '#fcd34d',
-    dept: ['QC'],
-    desc: 'Quality review and management'
-  },
-  {
     code: 'SD', name: 'Statistics (SD)',
     color: '#16A34A', bg: '#f0fdf4', border: '#86efac',
     dept: ['SD'],
@@ -1023,6 +1017,18 @@ const CATEGORIES = [
     color: '#059669', bg: '#ecfdf5', border: '#6ee7b7',
     dept: ['BS'],
     desc: 'Biostatistical analysis'
+  },
+  {
+    code: 'QC', name: 'Quality Control (QC)',
+    color: '#D97706', bg: '#fffbeb', border: '#fcd34d',
+    dept: ['QC'],
+    desc: 'Quality review and management'
+  },
+  {
+    code: 'QA', name: 'Quality Assurance (QA)',
+    color: '#B45309', bg: '#fef3c7', border: '#fbbf24',
+    dept: ['QA'],
+    desc: 'Quality assurance and compliance'
   },
   {
     code: 'SC', name: 'Clinical Operations',
@@ -1041,23 +1047,28 @@ const CATEGORIES = [
 // Job CodeExtract department code from Job Code
 function getDeptCode(jobCode) {
   if (!jobCode || jobCode === 'NO-JOBCODE-ASSIGNED' || String(jobCode).startsWith('NO-')) return 'NO';
-  const parts = String(jobCode).split('-');
-  for (let i = 1; i < parts.length; i++) {
-    if (/^[A-Z]{2,4}$/.test(parts[i]) && isNaN(parseInt(parts[i]))) return parts[i];
+  // 공백을 하이픈으로 정규화 후 파싱
+  const normalized = String(jobCode).replace(/\s+/g, '-');
+  const parts = normalized.split('-');
+  const KNOWN_DEPTS = ['RO','RS','DM','QC','SD','BS','SC','CR','QA','CO','OT'];
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i].toUpperCase();
+    if (KNOWN_DEPTS.includes(p)) return p;
   }
   return null;
 }
 
 // Task name keyword → category code mapping (NO-JOBCODE fallback)
 const TASK_KEYWORD_MAP = [
-  { code: 'SD', keywords: ['sdtm','adam','tlf','sas','programming','mapping','validation','edit check','offline edit','reviewer guide','statistical','analysis plan','sap review'] },
-  { code: 'DM', keywords: ['data management','database lock','dmp','data management plan','data review','data management review','reconciliation','query','edc','crf'] },
-  { code: 'QC', keywords: ['qc','quality','application qc','publishing and qc','offline dvp','dvp'] },
-  { code: 'RO', keywords: ['formatting','publishing','submission','regulatory writing','health authority','regulatory review','project management','documentation','meetings','email','correspondence'] },
-  { code: 'RS', keywords: ['regulatory consulting','proposal development','proposal'] },
+  { code: 'SD', keywords: ['sdtm','adam','tlf','sas','programming','mapping','validation','edit check','offline edit','reviewer guide','statistical','analysis plan','sap review','general sd'] },
+  { code: 'DM', keywords: ['data management','database lock','dmp','data management plan','data review','data management review','reconciliation','query','edc','crf','data entry'] },
+  { code: 'QC', keywords: ['qc','quality control','application qc','publishing and qc','offline dvp','dvp'] },
+  { code: 'QA', keywords: ['quality assurance','quality','audit','compliance','inspection'] },
+  { code: 'RO', keywords: ['formatting','publishing','submission','regulatory writing','health authority','regulatory review','project management','documentation','meetings','email','correspondence','spl','bid defense','other task'] },
+  { code: 'RS', keywords: ['regulatory consulting','proposal development','proposal','business development'] },
   { code: 'BS', keywords: ['biostatistics','biostat'] },
   { code: 'SC', keywords: ['clinical','site','monitoring','cra','investigator'] },
-  { code: 'INT', keywords: ['training','Internal training','onboarding','intern training'] },
+  { code: 'INT', keywords: ['training','internal training','onboarding','intern training'] },
 ];
 
 function getCatByTaskName(task) {
@@ -1070,7 +1081,7 @@ function getCatByTaskName(task) {
   return null;
 }
 
-function getCat(task, jobCode, sponsor) {
+function getCat(task, jobCode, sponsor, comment) {
   // 1. If Sponsor is 'Company Internal' → force INT (ignore Job Code)
   if (sponsor && String(sponsor).trim() === 'Company Internal') {
     return CATEGORIES.find(c => c.code === 'INT') || null;
@@ -1082,9 +1093,12 @@ function getCat(task, jobCode, sponsor) {
       if (c.dept.includes(dept)) return c;
     }
   }
-  // 3. NO-JOBCODE + general Sponsor → Task name based fallback
+  // 3. NO-JOBCODE → Task name based fallback
   if (dept === 'NO') {
-    return getCatByTaskName(task);
+    const catByTask = getCatByTaskName(task);
+    if (catByTask) return catByTask;
+    // 4. Task 키워드로도 불명확 시 → User Comment 키워드 fallback
+    if (comment) return getCatByTaskName(comment);
   }
   return null;
 }
@@ -1113,8 +1127,8 @@ function getTaskColor(task) {
   return c;
 }
 
-function getTaskStyle(task, jobCode, sponsor) {
-  const cat = getCat(task, jobCode, sponsor);
+function getTaskStyle(task, jobCode, sponsor, comment) {
+  const cat = getCat(task, jobCode, sponsor, comment);
   if (cat) return cat;
   // Force INT color if sponsor is 'Company Internal'
   if (sponsor && String(sponsor).trim() === 'Company Internal') {
@@ -1753,7 +1767,7 @@ function renderMetrics(data) {
   // cat breakdown
   const catBreakdown = Object.entries(
     data.reduce((m, d) => {
-      const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+      const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
       const k = cat ? `${cat.code} ${cat.name}` : 'Unclassified';
       m[k] = (m[k]||0)+d.Hours; return m;
     }, {})
@@ -2855,7 +2869,7 @@ function openPersonDetail(name) {
   // Aggregation by category
   const catMap = {};
   useData.forEach(d => {
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
     const code = cat?cat.code:'ETC';
     const label = cat?cat.code:'Other';
     const color = cat?cat.color:'#9CA3AF';
@@ -2870,7 +2884,7 @@ function openPersonDetail(name) {
   const DAY_KEYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   useData.forEach(d => {
     const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
     const code = cat?cat.code:'ETC';
     const color = cat?cat.color:'#9CA3AF';
     if (!taskMap[task]) taskMap[task] = {task,rawTask:d.Task,code,color,total:0,days:[0,0,0,0,0,0,0]};
@@ -3071,7 +3085,7 @@ function renderDetail(data) {
   detailPersonFilter = sel.value;
 
   // Build category chips — only show cats that appear in current data
-  const catsInData = CATEGORIES.filter(c => data.some(d => { const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']); return cat && cat.code === c.code; }));
+  const catsInData = CATEGORIES.filter(c => data.some(d => { const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']); return cat && cat.code === c.code; }));
   document.getElementById('det-cat-chips').innerHTML = catsInData.map(c =>
     `<button class="cat-chip${detailCatFilter === c.code ? ' active' : ''}"
       style="color:${c.color};border-color:${c.border};background:${detailCatFilter === c.code ? c.bg : 'transparent'}"
@@ -3154,7 +3168,7 @@ function renderDetailPage() {
   // Category filter
   if (detailCatFilter) {
     data = data.filter(d => {
-      const c = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+      const c = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
       return c && c.code === detailCatFilter;
     });
   }
@@ -3191,8 +3205,8 @@ function renderDetailPage() {
     if (c.key === 'Hours') return `<td class="td-num">${d.Hours.toFixed(1)}h</td>`;
     if (c.key === 'Task') {
       const t = String(d[c.key]).replace(/\s*\(.*?\)/g, '').trim();
-      const style = getTaskStyle(d[c.key], d['Job Code'], d['Sponsor Name']);
-      const cat = getCat(d[c.key], d['Job Code']);
+      const style = getTaskStyle(d[c.key], d['Job Code'], d['Sponsor Name'], d['User Comment']);
+      const cat = getCat(d[c.key], d['Job Code'], d['Sponsor Name'], d['User Comment']);
       const short = t.length > 22 ? t.slice(0, 22) + '…' : t;
       const label = cat ? cat.code : '';
       const badge = billingBadge(d[c.key]);
@@ -3249,7 +3263,7 @@ function renderTaskMap(data) {
 
   data.forEach(d => {
     const t = String(d.Task).replace(/\s*\(.*?\)/g, '').trim();
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
     totalHours += d.Hours;
     if (cat) {
       if (!catTaskMap[cat.code]) catTaskMap[cat.code] = { cat, taskMap: {} };
@@ -3373,7 +3387,7 @@ function goBackToTaskmap() { goBackToPrev(); }
 // ── PRINT REPORT ──────────────────────────────────────────
 function printReport() {
   let data = [...filteredData];
-  if (detailCatFilter) data = data.filter(d => { const c = getCat(d.Task, d['Job Code'], d['Sponsor Name']); return c && c.code === detailCatFilter; });
+  if (detailCatFilter) data = data.filter(d => { const c = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']); return c && c.code === detailCatFilter; });
   if (detailPersonFilter) data = data.filter(d => d.Name === detailPersonFilter);
   if (detailSearchStr) data = data.filter(d => { const str = [d.Name, d['Sponsor Name'], d['Project Name'], d.Task, d.dateStr].join(' ').toLowerCase(); return str.includes(detailSearchStr); });
   data.sort((a, b) => {
@@ -3827,7 +3841,7 @@ function exportExcel() {
 
   const byCat = {};
   data.forEach(d => {
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
     const key = cat ? cat.code : 'Unclassified';
     const name = cat ? cat.name : 'Unclassified';
     const color = cat ? cat.color.replace('#','') : '888888';
@@ -3928,7 +3942,7 @@ function exportExcel() {
   const sorted = [...data].sort((a,b) => a.dateStr.localeCompare(b.dateStr) || a.Name.localeCompare(b.Name));
   const detRows = sorted.map((d, i) => {
     const bg = i%2===0 ? 'FFFFFF' : 'F8FAFF';
-    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name']);
+    const cat = getCat(d.Task, d['Job Code'], d['Sponsor Name'], d['User Comment']);
     const catCode = cat ? cat.code : '—';
     const catColor = cat ? cat.color.replace('#','') : '888888';
     const task = String(d.Task).replace(/\s*\(.*?\)/g,'').trim();
