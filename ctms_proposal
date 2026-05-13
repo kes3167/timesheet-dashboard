@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CTMS — Proposal Workflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --blue-mid: #378ADD;
+    --green: #3B6D11;
+    --green-light: #EAF3DE;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --gray: #5F5E5A;
+    --gray-light: #F1EFE8;
+    --bg: #F5F4F0;
+    --surface: #FFFFFF;
+    --surface2: #F1EFE8;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.06);
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #9b9b96;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --nav-h: 56px;
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    height: var(--nav-h);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 600; color: var(--text); text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 28px; height: 28px; background: var(--blue);
+    border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  }
+  .nav-logo-mark i { color: white; font-size: 15px; }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .nav-chip {
+    font-size: 12px; color: var(--text2); background: var(--surface2);
+    padding: 4px 12px; border-radius: 99px; border: 1px solid var(--border);
+  }
+
+  /* LAYOUT */
+  .page { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+  /* STEP BAR */
+  .step-bar {
+    display: flex; align-items: center; margin-bottom: 2.5rem;
+  }
+  .step-item {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 13px; color: var(--text3); white-space: nowrap;
+  }
+  .step-item.active { color: var(--text); font-weight: 500; }
+  .step-item.done { color: var(--green); }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 1px solid var(--border); display: flex; align-items: center;
+    justify-content: center; font-size: 11px; font-weight: 600;
+    background: var(--surface); flex-shrink: 0;
+  }
+  .step-item.active .step-num {
+    background: var(--text); color: var(--surface); border-color: var(--text);
+  }
+  .step-item.done .step-num {
+    background: var(--green-light); color: var(--green); border-color: rgba(59,109,17,.2);
+  }
+  .step-line { flex: 1; height: 1px; background: var(--border2); margin: 0 12px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 14px; font-weight: 600; color: var(--text);
+    margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 3rem 2rem; text-align: center;
+    cursor: pointer; transition: border-color .15s, background .15s;
+  }
+  .upload-zone:hover { border-color: var(--blue-mid); background: var(--blue-light); }
+  .upload-zone.drag { border-color: var(--blue-mid); background: var(--blue-light); }
+  .upload-zone i { font-size: 40px; color: var(--text3); display: block; margin-bottom: 1rem; }
+  .upload-title { font-size: 15px; font-weight: 500; margin-bottom: .4rem; }
+  .upload-sub { font-size: 12px; color: var(--text3); }
+  .file-chip {
+    display: none; align-items: center; gap: 10px;
+    margin-top: 1rem; padding: 10px 14px;
+    background: var(--surface2); border-radius: var(--radius-sm);
+    font-size: 13px; border: 1px solid var(--border2);
+  }
+  .file-chip i { font-size: 18px; color: var(--red); }
+
+  /* LOADING */
+  .loading-card { display: none; }
+  .loading-bar {
+    height: 4px; background: var(--surface2); border-radius: 99px;
+    overflow: hidden; margin-top: .75rem;
+  }
+  .loading-fill {
+    height: 100%; width: 0%; background: var(--blue);
+    border-radius: 99px; transition: width .4s ease;
+  }
+  .loading-msg { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 8px; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 500;
+  }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-gray { background: var(--gray-light); color: var(--gray); }
+  .ai-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 99px; font-size: 11px;
+    background: var(--blue-light); color: var(--blue);
+  }
+
+  /* FORM FIELDS */
+  .field-row { display: grid; gap: 12px; margin-bottom: 14px; }
+  .field-row.col2 { grid-template-columns: 1fr 1fr; }
+  .field-row.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .field input, .field textarea, .field select {
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 8px 11px; background: var(--surface); color: var(--text);
+    outline: none; transition: border-color .12s; resize: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    border-color: var(--blue-mid);
+    box-shadow: 0 0 0 3px rgba(55,138,221,.12);
+  }
+
+  /* MILESTONES */
+  .milestone-head {
+    display: grid; grid-template-columns: 2.5fr 1fr 1.2fr 36px;
+    gap: 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border2); margin-bottom: 4px;
+  }
+  .milestone-head span {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .milestone-row {
+    display: grid; grid-template-columns: 2.5fr 1fr 1.2fr 36px;
+    gap: 10px; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border2);
+  }
+  .milestone-row:last-child { border-bottom: none; }
+  .milestone-row input {
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    padding: 6px 9px; background: var(--surface); color: var(--text);
+    outline: none; width: 100%; transition: border-color .12s;
+  }
+  .milestone-row input:focus { border-color: var(--blue-mid); }
+  .del-btn {
+    width: 30px; height: 30px; border-radius: var(--radius-sm);
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); display: flex; align-items: center; justify-content: center;
+    transition: background .12s, color .12s; font-size: 16px;
+  }
+  .del-btn:hover { background: var(--red-light); color: var(--red); }
+  .total-row {
+    display: flex; justify-content: flex-end; align-items: center; gap: 16px;
+    padding-top: 14px; border-top: 1px solid var(--border2); margin-top: 8px;
+  }
+  .total-label { font-size: 13px; color: var(--text2); }
+  .total-amount { font-size: 22px; font-weight: 600; color: var(--text); font-family: 'DM Mono', monospace; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    color: var(--text); cursor: pointer; transition: background .12s, border-color .12s;
+    text-decoration: none;
+  }
+  .btn:hover { background: var(--surface2); }
+  .btn-primary {
+    background: var(--text); color: var(--surface); border-color: var(--text);
+  }
+  .btn-primary:hover { opacity: .88; }
+  .btn-primary:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-sm { padding: 6px 13px; font-size: 12px; }
+  .section-actions {
+    display: flex; justify-content: flex-end; gap: 8px; margin-top: 1.5rem;
+  }
+
+  /* REVIEW */
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1rem; }
+  .metric {
+    background: var(--surface2); border-radius: var(--radius-sm); padding: 1rem 1.25rem;
+  }
+  .metric-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+  .metric-val { font-size: 20px; font-weight: 600; color: var(--text); }
+  .metric-val.mono { font-family: 'DM Mono', monospace; font-size: 18px; }
+  .review-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 0; border-bottom: 1px solid var(--border2);
+  }
+  .review-row:last-child { border-bottom: none; }
+  .review-name { font-size: 13px; color: var(--text); }
+  .review-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .review-amount { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--text); }
+
+  /* SUCCESS */
+  .success-banner {
+    background: var(--green-light); border: 1px solid rgba(59,109,17,.15);
+    border-radius: var(--radius); padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem;
+  }
+  .success-banner i { font-size: 22px; color: var(--green); flex-shrink: 0; }
+  .success-title { font-size: 14px; font-weight: 600; color: var(--green); }
+  .success-sub { font-size: 12px; color: var(--green); opacity: .75; margin-top: 2px; }
+
+  /* STEP VISIBILITY */
+  .step-content { display: none; }
+  .step-content.active { display: block; }
+
+  /* DIVIDER */
+  .section-divider {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: .06em;
+    margin: 1.5rem 0 .75rem; padding-bottom: .5rem;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  @media (max-width: 640px) {
+    .field-row.col2, .field-row.col3 { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr; }
+    .milestone-head, .milestone-row { grid-template-columns: 1fr 1fr 36px; }
+    .milestone-head span:nth-child(2), .milestone-row input[type="date"] { display: none; }
+    .step-item span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-logo" href="#">
+    <div class="nav-logo-mark"><i class="ti ti-building-hospital"></i></div>
+    Target Health CTMS
+  </a>
+  <div class="nav-right">
+    <span class="nav-chip">Proposal Workflow</span>
+    <span class="nav-chip" id="today-date"></span>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- STEP BAR -->
+  <div class="step-bar">
+    <div class="step-item active" id="si-1"><div class="step-num">1</div><span>Proposal upload</span></div>
+    <div class="step-line"></div>
+    <div class="step-item" id="si-2"><div class="step-num">2</div><span>Essential documents</span></div>
+    <div class="step-line"></div>
+    <div class="step-item" id="si-3"><div class="step-num">3</div><span>Payment milestones</span></div>
+    <div class="step-line"></div>
+    <div class="step-item" id="si-4"><div class="step-num">4</div><span>Review & save</span></div>
+  </div>
+
+  <!-- STEP 1: UPLOAD -->
+  <div class="step-content active" id="step-1">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-file-type-pdf" style="font-size:18px;color:var(--red)"></i> Upload proposal PDF</div>
+      <div class="upload-zone" id="upload-zone"
+        onclick="document.getElementById('file-input').click()"
+        ondragover="event.preventDefault();this.classList.add('drag')"
+        ondragleave="this.classList.remove('drag')"
+        ondrop="handleDrop(event)">
+        <i class="ti ti-cloud-upload"></i>
+        <div class="upload-title">Drop your proposal PDF here</div>
+        <div class="upload-sub" style="margin-top:.3rem">or click to browse — PDF up to 50MB</div>
+      </div>
+      <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFile(this)">
+      <div class="file-chip" id="file-chip">
+        <i class="ti ti-file-type-pdf"></i>
+        <span id="file-name" style="flex:1;font-weight:500"></span>
+        <span class="badge badge-gray" id="file-size"></span>
+        <button class="btn btn-sm" style="padding:4px 10px" onclick="clearFile(event)"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+
+    <div class="card loading-card" id="loading-card">
+      <div class="loading-msg">
+        <i class="ti ti-sparkles" style="color:var(--blue);font-size:17px"></i>
+        <span id="loading-msg-text">Reading PDF structure...</span>
+      </div>
+      <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+    </div>
+
+    <div class="section-actions">
+      <button class="btn btn-primary" id="extract-btn" disabled onclick="simulateExtract()">
+        <i class="ti ti-sparkles"></i> Extract with AI
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: ESSENTIAL DOCUMENTS -->
+  <div class="step-content" id="step-2">
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-building" style="font-size:16px;color:var(--blue)"></i>
+        Sponsor information
+        <span class="ai-tag"><i class="ti ti-sparkles" style="font-size:11px"></i> AI extracted</span>
+      </div>
+      <div class="field-row col2">
+        <div class="field"><label>Sponsor name</label><input id="f-sponsor" value="Absology Co., Ltd."></div>
+        <div class="field"><label>Contact person</label><input id="f-contact" value="Dr. Ji-Won Park"></div>
+      </div>
+      <div class="field-row col3">
+        <div class="field"><label>Email</label><input id="f-email" value="j.park@absology.co.kr"></div>
+        <div class="field"><label>Phone</label><input id="f-phone" value="+82-2-555-8210"></div>
+        <div class="field"><label>Country</label><input id="f-country" value="South Korea"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Address</label><textarea id="f-address" rows="2">14F Teheran-ro 152, Gangnam-gu, Seoul 06236, Republic of Korea</textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-clipboard-list" style="font-size:16px;color:var(--blue)"></i>
+        Project scope
+        <span class="ai-tag"><i class="ti ti-sparkles" style="font-size:11px"></i> AI extracted</span>
+      </div>
+      <div class="field-row col2">
+        <div class="field"><label>Project title</label><input id="f-title" value="Phase I/II Clinical Study – ABSO-VitD Test Kit"></div>
+        <div class="field"><label>Indication</label><input id="f-indication" value="Vitamin D deficiency diagnostic"></div>
+      </div>
+      <div class="field-row col3">
+        <div class="field"><label>Study phase</label>
+          <select id="f-phase">
+            <option>Phase I</option>
+            <option selected>Phase I/II</option>
+            <option>Phase II</option>
+            <option>Phase III</option>
+            <option>Phase IV</option>
+          </select>
+        </div>
+        <div class="field"><label>Start date</label><input type="date" id="f-start" value="2025-03-01"></div>
+        <div class="field"><label>End date</label><input type="date" id="f-end" value="2027-02-28"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Scope summary</label>
+          <textarea id="f-scope" rows="3">Regulatory strategy, IND preparation and submission, protocol development, statistical analysis plan, and FDA liaison services for Phase I/II study of VitD diagnostic device.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-users" style="font-size:16px;color:var(--blue)"></i>
+        Project assignment
+      </div>
+      <div class="field-row col3">
+        <div class="field"><label>Project manager</label>
+          <select id="f-pm">
+            <option>— Select PM —</option>
+            <option selected>Sarah Mitchell</option>
+            <option>James O'Brien</option>
+            <option>Yuki Tanaka</option>
+          </select>
+        </div>
+        <div class="field"><label>Lead CRA</label>
+          <select id="f-cra">
+            <option>— Select CRA —</option>
+            <option selected>Mittal Suthar</option>
+            <option>David Chen</option>
+            <option>Priya Nair</option>
+          </select>
+        </div>
+        <div class="field"><label>Department</label>
+          <select id="f-dept">
+            <option>RO – Regulatory Ops</option>
+            <option>RS – Reg Strategy</option>
+            <option>DM – Data Management</option>
+            <option>SD – Statistics</option>
+            <option>QC – Quality Control</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-actions">
+      <button class="btn" onclick="goStep(1)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Continue to milestones <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 3: PAYMENT MILESTONES -->
+  <div class="step-content" id="step-3">
+    <div class="card">
+      <div class="card-title">
+        <i class="ti ti-currency-dollar" style="font-size:16px;color:var(--blue)"></i>
+        Payment milestones
+        <span class="ai-tag"><i class="ti ti-sparkles" style="font-size:11px"></i> AI extracted</span>
+      </div>
+      <div class="milestone-head">
+        <span>Milestone</span>
+        <span>Due date</span>
+        <span>Amount (USD)</span>
+        <span></span>
+      </div>
+      <div id="milestone-list"></div>
+      <div class="total-row">
+        <span class="total-label">Total contract value</span>
+        <span class="total-amount" id="total-amount">$0</span>
+      </div>
+      <div style="margin-top:1.25rem">
+        <button class="btn btn-sm" onclick="addMilestone()"><i class="ti ti-plus"></i> Add milestone</button>
+      </div>
+    </div>
+
+    <div class="section-actions">
+      <button class="btn" onclick="goStep(2)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Review & save <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 4: REVIEW -->
+  <div class="step-content" id="step-4">
+    <div class="success-banner">
+      <i class="ti ti-circle-check"></i>
+      <div>
+        <div class="success-title">Ready to save</div>
+        <div class="success-sub">All fields extracted and verified. Review the summary below before saving to CTMS.</div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="metric">
+        <div class="metric-label">Sponsor</div>
+        <div class="metric-val" id="sum-sponsor" style="font-size:15px;line-height:1.3"></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Milestones</div>
+        <div class="metric-val" id="sum-count"></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total value</div>
+        <div class="metric-val mono" id="sum-total"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-file-description" style="font-size:16px;color:var(--blue)"></i> Proposal summary</div>
+      <div class="field-row col2" style="margin-bottom:0">
+        <div class="field"><label>Project title</label><input id="rev-title" readonly></div>
+        <div class="field"><label>Contact</label><input id="rev-contact" readonly></div>
+      </div>
+      <div class="field-row col3" style="margin-top:12px;margin-bottom:0">
+        <div class="field"><label>Phase</label><input id="rev-phase" readonly></div>
+        <div class="field"><label>Start</label><input id="rev-start" readonly></div>
+        <div class="field"><label>End</label><input id="rev-end" readonly></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-receipt" style="font-size:16px;color:var(--blue)"></i> Milestone schedule</div>
+      <div id="review-milestones"></div>
+    </div>
+
+    <div class="section-actions">
+      <button class="btn" onclick="goStep(3)"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn btn-primary" id="save-btn" onclick="saveProposal()"><i class="ti ti-device-floppy"></i> Save to CTMS</button>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  let currentStep = 1;
+
+  const milestones = [
+    { name: 'Contract execution & project initiation', date: '2025-03-15', amount: 15000 },
+    { name: 'IND strategy document & regulatory roadmap', date: '2025-05-01', amount: 22500 },
+    { name: 'Protocol development – first draft', date: '2025-07-01', amount: 18000 },
+    { name: 'Statistical Analysis Plan (SAP)', date: '2025-09-15', amount: 20000 },
+    { name: 'IND submission to FDA', date: '2025-11-30', amount: 30000 },
+    { name: 'FDA response & amendment support', date: '2026-03-01', amount: 15000 },
+    { name: 'Final study report & closeout', date: '2027-02-28', amount: 25000 },
+  ];
+
+  function goStep(n) {
+    document.getElementById('step-' + currentStep).classList.remove('active');
+    ['si-1','si-2','si-3','si-4'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.classList.remove('active','done');
+      if (i + 1 < n) el.classList.add('done');
+      else if (i + 1 === n) el.classList.add('active');
+    });
+    currentStep = n;
+    document.getElementById('step-' + n).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (n === 3) renderMilestones();
+    if (n === 4) renderReview();
+  }
+
+  function handleFile(input) {
+    if (!input.files[0]) return;
+    showFile(input.files[0]);
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-zone').classList.remove('drag');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type === 'application/pdf') showFile(f);
+  }
+
+  function showFile(f) {
+    document.getElementById('file-name').textContent = f.name;
+    document.getElementById('file-size').textContent = (f.size / 1024).toFixed(0) + ' KB';
+    document.getElementById('file-chip').style.display = 'flex';
+    document.getElementById('extract-btn').disabled = false;
+  }
+
+  function clearFile(e) {
+    e.stopPropagation();
+    document.getElementById('file-chip').style.display = 'none';
+    document.getElementById('file-input').value = '';
+    document.getElementById('extract-btn').disabled = true;
+  }
+
+  function simulateExtract() {
+    document.getElementById('loading-card').style.display = 'block';
+    document.getElementById('extract-btn').disabled = true;
+    const msgs = [
+      'Reading PDF structure...',
+      'Extracting sponsor information...',
+      'Identifying project scope & deliverables...',
+      'Parsing payment milestones...',
+      'Validating extracted data...',
+    ];
+    let i = 0;
+    const fill = document.getElementById('loading-fill');
+    const msg = document.getElementById('loading-msg-text');
+    const interval = setInterval(() => {
+      i++;
+      fill.style.width = (i * 20) + '%';
+      if (i < msgs.length) msg.textContent = msgs[i];
+      if (i >= 5) {
+        clearInterval(interval);
+        setTimeout(() => goStep(2), 500);
+      }
+    }, 550);
+  }
+
+  function renderMilestones() {
+    document.getElementById('milestone-list').innerHTML = milestones.map((m, i) => `
+      <div class="milestone-row">
+        <input value="${m.name}" placeholder="Milestone description"
+          oninput="milestones[${i}].name=this.value">
+        <input type="date" value="${m.date}"
+          oninput="milestones[${i}].date=this.value">
+        <input type="number" value="${m.amount}" placeholder="0" min="0" step="500"
+          oninput="milestones[${i}].amount=+this.value; updateTotal()">
+        <button class="del-btn" onclick="removeMilestone(${i})" title="Remove">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div>
+    `).join('');
+    updateTotal();
+  }
+
+  function updateTotal() {
+    const total = milestones.reduce((s, m) => s + (m.amount || 0), 0);
+    document.getElementById('total-amount').textContent = '$' + total.toLocaleString();
+  }
+
+  function addMilestone() {
+    milestones.push({ name: '', date: '', amount: 0 });
+    renderMilestones();
+  }
+
+  function removeMilestone(i) {
+    milestones.splice(i, 1);
+    renderMilestones();
+  }
+
+  function renderReview() {
+    document.getElementById('sum-sponsor').textContent = document.getElementById('f-sponsor').value;
+    document.getElementById('sum-count').textContent = milestones.length;
+    const total = milestones.reduce((s, m) => s + (m.amount || 0), 0);
+    document.getElementById('sum-total').textContent = '$' + total.toLocaleString();
+
+    document.getElementById('rev-title').value = document.getElementById('f-title').value;
+    document.getElementById('rev-contact').value = document.getElementById('f-contact').value;
+    document.getElementById('rev-phase').value = document.getElementById('f-phase').value;
+    document.getElementById('rev-start').value = document.getElementById('f-start').value;
+    document.getElementById('rev-end').value = document.getElementById('f-end').value;
+
+    document.getElementById('review-milestones').innerHTML = milestones.map((m, i) => `
+      <div class="review-row">
+        <div>
+          <div class="review-name">${m.name || '(unnamed)'}</div>
+          <div class="review-date">${m.date ? new Date(m.date).toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'}) : 'No date set'}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="badge badge-blue">#${i + 1}</span>
+          <span class="review-amount">$${(m.amount || 0).toLocaleString()}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function saveProposal() {
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-loader ti-spin"></i> Saving...';
+    setTimeout(() => {
+      btn.innerHTML = '<i class="ti ti-circle-check"></i> Saved to CTMS';
+      btn.style.background = 'var(--green)';
+      btn.style.borderColor = 'var(--green)';
+    }, 1200);
+  }
+</script>
+</body>
+</html>
